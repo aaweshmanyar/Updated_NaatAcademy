@@ -11,4 +11,7 @@ router.get('/:id', categoryController.getCategoryById);
 // Search categories
 router.get('/search', categoryController.searchCategories);
 
+// Create new category
+router.post('/', categoryController.createCategory);
+
 module.exports = router; 

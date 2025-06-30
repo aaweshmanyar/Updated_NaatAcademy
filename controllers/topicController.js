@@ -12,7 +12,7 @@ const pool = mysql.createPool({
 // Get all topics
 exports.getAllTopics = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM topic');
+        const [rows] = await pool.query('SELECT * FROM Topic');
         res.json(rows);
     } catch (error) {
         console.error('Error fetching topics:', error);
@@ -23,7 +23,7 @@ exports.getAllTopics = async (req, res) => {
 // Get topic by ID
 exports.getTopicById = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM topic WHERE id = ?', [req.params.id]);
+        const [rows] = await pool.query('SELECT * FROM Topic WHERE id = ?', [req.params.id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Topic not found' });
@@ -41,7 +41,7 @@ exports.searchTopics = async (req, res) => {
     try {
         const searchTerm = `%${req.query.term}%`;
         const [rows] = await pool.query(
-            'SELECT * FROM topic WHERE title LIKE ? OR description LIKE ?',
+            'SELECT * FROM Topic WHERE title LIKE ? OR description LIKE ?',
             [searchTerm, searchTerm]
         );
         res.json(rows);

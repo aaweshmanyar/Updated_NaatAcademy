@@ -11,4 +11,7 @@ router.get('/:id', writerController.getWriterById);
 // Search writers
 router.get('/search', writerController.searchWriters);
 
+// Create new writer
+router.post('/', writerController.createWriter);
+
 module.exports = router; 

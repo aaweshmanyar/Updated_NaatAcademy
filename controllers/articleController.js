@@ -11,7 +11,7 @@ const pool = mysql.createPool({
 
 exports.getAllArticles = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM article');
+        const [rows] = await pool.query('SELECT * FROM article WHERE IsDeleted = 0');
         res.json(rows);
     } catch (error) {
         console.error('Error fetching articles:', error);
@@ -21,7 +21,7 @@ exports.getAllArticles = async (req, res) => {
 
 exports.getArticleById = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM article WHERE id = ?', [req.params.id]);
+        const [rows] = await pool.query('SELECT * FROM article WHERE ArticleID = ? AND IsDeleted = 0', [req.params.id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Article not found' });
@@ -38,13 +38,82 @@ exports.searchArticles = async (req, res) => {
     try {
         const searchTerm = `%${req.query.term}%`;
         const [rows] = await pool.query(
-            'SELECT * FROM article WHERE title LIKE ? OR content LIKE ?',
-            [searchTerm, searchTerm]
+            'SELECT * FROM article WHERE (Title LIKE ? OR ContentUrdu LIKE ? OR ContentEnglish LIKE ?) AND IsDeleted = 0',
+            [searchTerm, searchTerm, searchTerm]
         );
         res.json(rows);
     } catch (error) {
         console.error('Error searching articles:', error);
         res.status(500).json({ message: 'Error searching articles', error: error.message });
+    }
+};
+
+exports.createArticle = async (req, res) => {
+    try {
+        // Required fields validation
+        const requiredFields = ['Title', 'WriterID', 'CategoryID'];
+        const missingFields = requiredFields.filter(field => !req.body[field]);
+        
+        if (missingFields.length > 0) {
+            return res.status(400).json({
+                message: 'Missing required fields',
+                missingFields: missingFields
+            });
+        }
+
+        // Prepare the insert query with all possible fields
+        const query = `
+            INSERT INTO article (
+                Title,
+                WriterID,
+                WriterName,
+                CategoryID,
+                CategoryName,
+                ThumbnailURL,
+                ContentUrdu,
+                ContentEnglish,
+                GroupID,
+                GroupName,
+                SectionID,
+                SectionName,
+                IsDeleted
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        `;
+
+        // Extract values from request body with fallbacks for optional fields
+        const values = [
+            req.body.Title,
+            req.body.WriterID,
+            req.body.WriterName || null,
+            req.body.CategoryID,
+            req.body.CategoryName || null,
+            req.body.ThumbnailURL || null,
+            req.body.ContentUrdu || null,
+            req.body.ContentEnglish || null,
+            req.body.GroupID || null,
+            req.body.GroupName || null,
+            req.body.SectionID || null,
+            req.body.SectionName || null,
+            0  // IsDeleted defaults to 0 (false)
+        ];
+
+        // Execute the insert query
+        const [result] = await pool.query(query, values);
+
+        // Return success response with the new article ID
+        res.status(201).json({
+            message: 'Article created successfully',
+            articleId: result.insertId,
+            success: true
+        });
+
+    } catch (error) {
+        console.error('Error creating article:', error);
+        res.status(500).json({
+            message: 'Error creating article',
+            error: error.message,
+            success: false
+        });
     }
 };
 

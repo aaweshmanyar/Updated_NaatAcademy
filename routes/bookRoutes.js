@@ -11,4 +11,7 @@ router.get('/:id', bookController.getBookById);
 // Search books
 router.get('/search', bookController.searchBooks);
 
+// Create new book
+router.post('/', bookController.createBook);
+
 module.exports = router; 
