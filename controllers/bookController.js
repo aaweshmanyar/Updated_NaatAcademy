@@ -65,15 +65,15 @@ exports.createBook = async (req, res) => {
         }
 
         // Validate PublicationYear format if provided
-        if (req.body.PublicationYear) {
-            const yearRegex = /^\d{4}$/;
-            if (!yearRegex.test(req.body.PublicationYear)) {
-                return res.status(400).json({
-                    message: 'Invalid PublicationYear format. Must be a 4-digit year (YYYY)',
-                    success: false
-                });
-            }
-        }
+        // if (req.body.PublicationYear) {
+        //     const yearRegex = /^\d{4}$/;
+        //     if (!yearRegex.test(req.body.PublicationYear)) {
+        //         return res.status(400).json({
+        //             message: 'Invalid PublicationYear format. Must be a 4-digit year (YYYY)',
+        //             success: false
+        //         });
+        //     }
+        // }
 
         // Prepare the insert query with all possible fields
         const query = `
