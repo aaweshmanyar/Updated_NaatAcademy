@@ -1,0 +1,239 @@
+NAAT ACADEMY API ROUTES DOCUMENTATION
+=====================================
+
+Base URL: http://localhost:3000 (or your configured port)
+
+FILE UPLOAD ROUTES
+==================
+
+POST /api/upload
+- Description: Upload an image file
+- Content-Type: multipart/form-data
+- Body: Form data with 'image' field
+- Response: JSON with imageUrl
+- File size limit: 5MB
+- Allowed formats: jpeg, jpg, png, gif
+
+ARTICLE ROUTES
+==============
+Base Path: /api/articles
+
+GET /api/articles
+- Description: Get all articles
+- Response: JSON array of articles
+
+GET /api/articles/:id
+- Description: Get article by ID
+- Parameters: id (article ID)
+- Response: JSON object of specific article
+
+GET /api/articles/search
+- Description: Search articles
+- Query Parameters: Search criteria
+- Response: JSON array of matching articles
+
+POST /api/articles
+- Description: Create new article
+- Content-Type: application/json
+- Body: Article data
+- Response: JSON object of created article
+
+WRITER ROUTES
+=============
+Base Path: /api/writers
+
+GET /api/writers
+- Description: Get all writers
+- Response: JSON array of writers
+
+GET /api/writers/:id
+- Description: Get writer by ID
+- Parameters: id (writer ID)
+- Response: JSON object of specific writer
+
+GET /api/writers/search
+- Description: Search writers
+- Query Parameters: Search criteria
+- Response: JSON array of matching writers
+
+POST /api/writers
+- Description: Create new writer
+- Content-Type: application/json
+- Body: Writer data
+- Response: JSON object of created writer
+
+BOOK ROUTES
+===========
+Base Path: /api/books
+
+GET /api/books
+- Description: Get all books
+- Response: JSON array of books
+
+GET /api/books/:id
+- Description: Get book by ID
+- Parameters: id (book ID)
+- Response: JSON object of specific book
+
+GET /api/books/search
+- Description: Search books
+- Query Parameters: Search criteria
+- Response: JSON array of matching books
+
+POST /api/books
+- Description: Create new book
+- Content-Type: application/json
+- Body: Book data
+- Response: JSON object of created book
+
+CATEGORY ROUTES
+===============
+Base Path: /api/categories
+
+GET /api/categories
+- Description: Get all categories
+- Response: JSON array of categories
+
+GET /api/categories/:id
+- Description: Get category by ID
+- Parameters: id (category ID)
+- Response: JSON object of specific category
+
+GET /api/categories/search
+- Description: Search categories
+- Query Parameters: Search criteria
+- Response: JSON array of matching categories
+
+POST /api/categories
+- Description: Create new category
+- Content-Type: application/json
+- Body: Category data
+- Response: JSON object of created category
+
+GROUP ROUTES
+============
+Base Path: /api/groups
+
+GET /api/groups
+- Description: Get all groups
+- Response: JSON array of groups
+
+GET /api/groups/:id
+- Description: Get group by ID
+- Parameters: id (group ID)
+- Response: JSON object of specific group
+
+GET /api/groups/search
+- Description: Search groups
+- Query Parameters: Search criteria
+- Response: JSON array of matching groups
+
+POST /api/groups
+- Description: Create new group
+- Content-Type: application/json
+- Body: Group data
+- Response: JSON object of created group
+
+KALAAM ROUTES
+=============
+Base Path: /api/kalaam
+
+GET /api/kalaam
+- Description: Get all kalaams
+- Response: JSON array of kalaams
+
+GET /api/kalaam/:id
+- Description: Get kalaam by ID
+- Parameters: id (kalaam ID)
+- Response: JSON object of specific kalaam
+
+GET /api/kalaam/search
+- Description: Search kalaams
+- Query Parameters: Search criteria
+- Response: JSON array of matching kalaams
+
+POST /api/kalaam
+- Description: Create new kalaam
+- Content-Type: application/json
+- Body: Kalaam data
+- Response: JSON object of created kalaam
+
+SECTION ROUTES
+==============
+Base Path: /api/sections
+
+GET /api/sections
+- Description: Get all sections
+- Response: JSON array of sections
+
+GET /api/sections/:id
+- Description: Get section by ID
+- Parameters: id (section ID)
+- Response: JSON object of specific section
+
+GET /api/sections/search
+- Description: Search sections
+- Query Parameters: Search criteria
+- Response: JSON array of matching sections
+
+POST /api/sections
+- Description: Create new section
+- Content-Type: application/json
+- Body: Section data
+- Response: JSON object of created section
+
+TOPIC ROUTES
+============
+Base Path: /api/topics
+
+GET /api/topics
+- Description: Get all topics
+- Response: JSON array of topics
+
+GET /api/topics/:id
+- Description: Get topic by ID
+- Parameters: id (topic ID)
+- Response: JSON object of specific topic
+
+GET /api/topics/search
+- Description: Search topics
+- Query Parameters: Search criteria
+- Response: JSON array of matching topics
+
+SUMMARY
+=======
+
+Total Routes: 33 endpoints
+- GET routes: 24
+- POST routes: 8
+- File upload routes: 1
+
+Entity Types:
+1. Articles
+2. Writers
+3. Books
+4. Categories
+5. Groups
+6. Kalaams
+7. Sections
+8. Topics
+
+Common Operations per Entity:
+- Get all items (GET /)
+- Get item by ID (GET /:id)
+- Search items (GET /search)
+- Create new item (POST /) - except Topics
+
+Special Routes:
+- File upload (POST /api/upload)
+
+NOTES
+=====
+
+1. All routes return JSON responses
+2. Error handling is implemented with appropriate HTTP status codes
+3. CORS is enabled for cross-origin requests
+4. File uploads are limited to 5MB and image files only
+5. Database connection uses MySQL with connection pooling
+6. Static files are served from /uploads directory
+7. Environment variables are used for database configuration 
