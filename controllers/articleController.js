@@ -69,7 +69,6 @@ exports.createArticle = async (req, res) => {
         const categoryId = parseInt(req.body.CategoryID);
         const groupId = req.body.GroupID ? parseInt(req.body.GroupID) : null;
         const sectionId = req.body.SectionID ? parseInt(req.body.SectionID) : null;
-        const topicId = req.body.TopicID ? parseInt(req.body.TopicID) : null;
 
         if (isNaN(writerId) || isNaN(categoryId)) {
             return res.status(400).json({
@@ -78,7 +77,7 @@ exports.createArticle = async (req, res) => {
             });
         }
 
-        // Prepare the insert query with all possible fields
+        // Prepare the insert query with all possible fields (TopicName only)
         const query = `
             INSERT INTO Article (
                 Title,
@@ -93,10 +92,9 @@ exports.createArticle = async (req, res) => {
                 GroupName,
                 SectionID,
                 SectionName,
-                TopicID,
                 TopicName,
                 IsDeleted
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         // Extract values from request body with fallbacks for optional fields
@@ -113,7 +111,6 @@ exports.createArticle = async (req, res) => {
             req.body.GroupName || null,
             sectionId,
             req.body.SectionName || null,
-            topicId,
             req.body.TopicName || null,
             0  // IsDeleted defaults to 0 (false)
         ];
