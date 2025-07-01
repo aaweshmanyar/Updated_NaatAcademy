@@ -50,14 +50,30 @@ exports.searchArticles = async (req, res) => {
 
 exports.createArticle = async (req, res) => {
     try {
+        console.log('Received article data:', req.body);
+
         // Required fields validation
         const requiredFields = ['Title', 'WriterID', 'CategoryID'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
         
         if (missingFields.length > 0) {
+            console.log('Missing required fields:', missingFields);
             return res.status(400).json({
                 message: 'Missing required fields',
                 missingFields: missingFields
+            });
+        }
+
+        // Convert string IDs to numbers if they're strings
+        const writerId = parseInt(req.body.WriterID);
+        const categoryId = parseInt(req.body.CategoryID);
+        const groupId = req.body.GroupID ? parseInt(req.body.GroupID) : null;
+        const sectionId = req.body.SectionID ? parseInt(req.body.SectionID) : null;
+
+        if (isNaN(writerId) || isNaN(categoryId)) {
+            return res.status(400).json({
+                message: 'Invalid ID format',
+                error: 'WriterID and CategoryID must be valid numbers'
             });
         }
 
@@ -83,22 +99,26 @@ exports.createArticle = async (req, res) => {
         // Extract values from request body with fallbacks for optional fields
         const values = [
             req.body.Title,
-            req.body.WriterID,
+            writerId,
             req.body.WriterName || null,
-            req.body.CategoryID,
+            categoryId,
             req.body.CategoryName || null,
             req.body.ThumbnailURL || null,
             req.body.ContentUrdu || null,
             req.body.ContentEnglish || null,
-            req.body.GroupID || null,
+            groupId,
             req.body.GroupName || null,
-            req.body.SectionID || null,
+            sectionId,
             req.body.SectionName || null,
             0  // IsDeleted defaults to 0 (false)
         ];
 
+        console.log('Executing query with values:', values);
+
         // Execute the insert query
         const [result] = await pool.query(query, values);
+
+        console.log('Insert result:', result);
 
         // Return success response with the new article ID
         res.status(201).json({
@@ -109,9 +129,19 @@ exports.createArticle = async (req, res) => {
 
     } catch (error) {
         console.error('Error creating article:', error);
+        console.error('Error details:', {
+            code: error.code,
+            errno: error.errno,
+            sqlMessage: error.sqlMessage,
+            sqlState: error.sqlState,
+            sql: error.sql
+        });
+        
+        // Send a more detailed error response
         res.status(500).json({
             message: 'Error creating article',
             error: error.message,
+            sqlError: error.sqlMessage,
             success: false
         });
     }

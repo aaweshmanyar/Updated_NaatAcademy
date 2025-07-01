@@ -2,12 +2,52 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const mysql = require('mysql2');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
 
 const app = express();
 
 // Middleware
 app.use(cors());
 app.use(express.json());
+
+// Create uploads directory if it doesn't exist
+const uploadDir = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir);
+}
+
+// Configure multer for file upload
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+        cb(null, uniqueSuffix + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({
+    storage: storage,
+    limits: {
+        fileSize: 5 * 1024 * 1024 // 5MB limit
+    },
+    fileFilter: function (req, file, cb) {
+        const allowedTypes = /jpeg|jpg|png|gif/;
+        const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
+        const mimetype = allowedTypes.test(file.mimetype);
+        if (extname && mimetype) {
+            return cb(null, true);
+        } else {
+            cb(new Error('Only image files are allowed!'));
+        }
+    }
+});
+
+// Serve static files from uploads directory
+app.use('/uploads', express.static('uploads'));
 
 // Database connection
 const pool = mysql.createPool({
@@ -28,6 +68,26 @@ pool.getConnection((err, connection) => {
     }
     console.log('Successfully connected to the database');
     connection.release();
+});
+
+// File upload route
+app.post('/api/upload', upload.single('image'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: 'No file uploaded' });
+        }
+        const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        res.json({ 
+            message: 'File uploaded successfully',
+            imageUrl: imageUrl
+        });
+    } catch (error) {
+        console.error('Error uploading file:', error);
+        res.status(500).json({ 
+            message: 'Error uploading file',
+            error: error.message
+        });
+    }
 });
 
 // Routes
@@ -53,7 +113,10 @@ app.use('/api/topics', topicRoutes);
 // Error handling middleware
 app.use((err, req, res, next) => {
     console.error(err.stack);
-    res.status(500).send('Something broke!');
+    res.status(500).json({
+        message: 'Something broke!',
+        error: err.message
+    });
 });
 
 const PORT = process.env.PORT || 3000;
