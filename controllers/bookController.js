@@ -77,7 +77,7 @@ exports.createBook = async (req, res) => {
 
         // Prepare the insert query with all possible fields
         const query = `
-            INSERT INTO book (
+            INSERT INTO Book (
                 Title,
                 AuthorID,
                 AuthorName,
