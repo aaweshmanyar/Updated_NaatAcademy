@@ -111,6 +111,8 @@ exports.createArticle = async (req, res) => {
             req.body.GroupName || null,
             sectionId,
             req.body.SectionName || null,
+            req.body.Topic || null,
+            req.body.TopicID || null,
             req.body.TopicName || null,
             0  // IsDeleted defaults to 0 (false)
         ];
