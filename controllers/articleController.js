@@ -11,17 +11,17 @@ const pool = mysql.createPool({
 
 exports.getAllArticles = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM article WHERE IsDeleted = 0');
+        const [rows] = await pool.query('SELECT * FROM Article WHERE IsDeleted = 0');
         res.json(rows);
     } catch (error) {
-        console.error('Error fetching articles:', error);
-        res.status(500).json({ message: 'Error fetching articles', error: error.message });
+        console.error('Error fetching Article:', error);
+        res.status(500).json({ message: 'Error fetching Article', error: error.message });
     }
 };
 
 exports.getArticleById = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM article WHERE ArticleID = ? AND IsDeleted = 0', [req.params.id]);
+        const [rows] = await pool.query('SELECT * FROM Article WHERE ArticleID = ? AND IsDeleted = 0', [req.params.id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Article not found' });
@@ -29,8 +29,8 @@ exports.getArticleById = async (req, res) => {
         
         res.json(rows[0]);
     } catch (error) {
-        console.error('Error fetching article:', error);
-        res.status(500).json({ message: 'Error fetching article', error: error.message });
+        console.error('Error fetching Article:', error);
+        res.status(500).json({ message: 'Error fetching Article', error: error.message });
     }
 };
 
@@ -38,19 +38,19 @@ exports.searchArticles = async (req, res) => {
     try {
         const searchTerm = `%${req.query.term}%`;
         const [rows] = await pool.query(
-            'SELECT * FROM article WHERE (Title LIKE ? OR ContentUrdu LIKE ? OR ContentEnglish LIKE ?) AND IsDeleted = 0',
+            'SELECT * FROM Article WHERE (Title LIKE ? OR ContentUrdu LIKE ? OR ContentEnglish LIKE ?) AND IsDeleted = 0',
             [searchTerm, searchTerm, searchTerm]
         );
         res.json(rows);
     } catch (error) {
-        console.error('Error searching articles:', error);
-        res.status(500).json({ message: 'Error searching articles', error: error.message });
+        console.error('Error searching Article:', error);
+        res.status(500).json({ message: 'Error searching Article', error: error.message });
     }
 };
 
 exports.createArticle = async (req, res) => {
     try {
-        console.log('Received article data:', req.body);
+        console.log('Received Article data:', req.body);
 
         // Required fields validation
         const requiredFields = ['Title', 'WriterID', 'CategoryID'];
@@ -79,7 +79,7 @@ exports.createArticle = async (req, res) => {
 
         // Prepare the insert query with all possible fields
         const query = `
-            INSERT INTO article (
+            INSERT INTO Article (
                 Title,
                 WriterID,
                 WriterName,
