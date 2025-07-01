@@ -12,18 +12,18 @@ const pool = mysql.createPool({
 // Get all books
 exports.getAllBooks = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM book WHERE IsDeleted = 0');
+        const [rows] = await pool.query('SELECT * FROM Book WHERE IsDeleted = 0');
         res.json(rows);
     } catch (error) {
-        console.error('Error fetching books:', error);
-        res.status(500).json({ message: 'Error fetching books', error: error.message });
+        console.error('Error fetching Book:', error);
+        res.status(500).json({ message: 'Error fetching Book', error: error.message });
     }
 };
 
 // Get book by ID
 exports.getBookById = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM book WHERE BookID = ? AND IsDeleted = 0', [req.params.id]);
+        const [rows] = await pool.query('SELECT * FROM Book WHERE BookID = ? AND IsDeleted = 0', [req.params.id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Book not found' });
@@ -31,8 +31,8 @@ exports.getBookById = async (req, res) => {
         
         res.json(rows[0]);
     } catch (error) {
-        console.error('Error fetching book:', error);
-        res.status(500).json({ message: 'Error fetching book', error: error.message });
+        console.error('Error fetching Book:', error);
+        res.status(500).json({ message: 'Error fetching Book', error: error.message });
     }
 };
 
@@ -41,13 +41,13 @@ exports.searchBooks = async (req, res) => {
     try {
         const searchTerm = `%${req.query.term}%`;
         const [rows] = await pool.query(
-            'SELECT * FROM book WHERE (Title LIKE ? OR AuthorName LIKE ?) AND IsDeleted = 0',
+            'SELECT * FROM Book WHERE (Title LIKE ? OR AuthorName LIKE ?) AND IsDeleted = 0',
             [searchTerm, searchTerm]
         );
         res.json(rows);
     } catch (error) {
-        console.error('Error searching books:', error);
-        res.status(500).json({ message: 'Error searching books', error: error.message });
+        console.error('Error searching Book:', error);
+        res.status(500).json({ message: 'Error searching Book', error: error.message });
     }
 };
 
@@ -93,8 +93,7 @@ exports.createBook = async (req, res) => {
                 PublicationYear,
                 Description,
                 IsDeleted
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        `;
+) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)        `;
 
         // Extract values from request body with fallbacks for optional fields
         const coverImageUrl = req.file

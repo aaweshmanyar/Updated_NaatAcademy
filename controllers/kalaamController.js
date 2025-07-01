@@ -73,7 +73,7 @@ exports.createKalaam = async (req, res) => {
 
         // Prepare the insert query with all possible fields
         const query = `
-            INSERT INTO kalaam (
+            INSERT INTO Kalaam (
                 Title,
                 WriterID,
                 WriterName,
