@@ -91,11 +91,15 @@ exports.createBook = async (req, res) => {
                 SectionName,
                 CoverImageURL,
                 PublicationYear,
+                Description,
                 IsDeleted
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         // Extract values from request body with fallbacks for optional fields
+        const coverImageUrl = req.file
+            ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+            : req.body.CoverImageURL || null;
         const values = [
             req.body.Title,
             req.body.AuthorID,
@@ -108,8 +112,9 @@ exports.createBook = async (req, res) => {
             req.body.GroupName || null,
             req.body.SectionID || null,
             req.body.SectionName || null,
-            req.body.CoverImageURL || null,
+            coverImageUrl,
             req.body.PublicationYear || null,
+            req.body.Description || null,
             0  // IsDeleted defaults to 0 (false)
         ];
 
