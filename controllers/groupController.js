@@ -12,7 +12,7 @@ const pool = mysql.createPool({
 // Get all groups
 exports.getAllGroups = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM `group`');
+        const [rows] = await pool.query('SELECT * FROM `Groups`');
         res.json(rows);
     } catch (error) {
         console.error('Error fetching groups:', error);
@@ -23,7 +23,7 @@ exports.getAllGroups = async (req, res) => {
 // Get group by ID
 exports.getGroupById = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM `group` WHERE GroupID = ?', [req.params.id]);
+        const [rows] = await pool.query('SELECT * FROM `Groups` WHERE GroupID = ?', [req.params.id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Group not found' });
@@ -41,7 +41,7 @@ exports.searchGroups = async (req, res) => {
     try {
         const searchTerm = `%${req.query.term}%`;
         const [rows] = await pool.query(
-            'SELECT * FROM `group` WHERE GroupName LIKE ? OR GroupDescription LIKE ?',
+            'SELECT * FROM `Groups` WHERE GroupName LIKE ? OR GroupDescription LIKE ?',
             [searchTerm, searchTerm]
         );
         res.json(rows);
@@ -66,7 +66,7 @@ exports.createGroup = async (req, res) => {
 
         // Prepare the insert query with all possible fields
         const query = `
-            INSERT INTO \`group\` (
+            INSERT INTO \`Groups\` (
                 GroupName,
                 GroupDescription
             ) VALUES (?, ?)

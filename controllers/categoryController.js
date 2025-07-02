@@ -12,7 +12,7 @@ const pool = mysql.createPool({
 // Get all categories
 exports.getAllCategories = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM category WHERE IsDeleted = 0');
+        const [rows] = await pool.query('SELECT * FROM Category WHERE IsDeleted = 0');
         res.json(rows);
     } catch (error) {
         console.error('Error fetching categories:', error);
@@ -23,7 +23,7 @@ exports.getAllCategories = async (req, res) => {
 // Get category by ID
 exports.getCategoryById = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM category WHERE CategoryID = ? AND IsDeleted = 0', [req.params.id]);
+        const [rows] = await pool.query('SELECT * FROM Category WHERE CategoryID = ? AND IsDeleted = 0', [req.params.id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Category not found' });
@@ -41,7 +41,7 @@ exports.searchCategories = async (req, res) => {
     try {
         const searchTerm = `%${req.query.term}%`;
         const [rows] = await pool.query(
-            'SELECT * FROM category WHERE (Name LIKE ? OR Description LIKE ?) AND IsDeleted = 0',
+            'SELECT * FROM Category WHERE (Name LIKE ? OR Description LIKE ?) AND IsDeleted = 0',
             [searchTerm, searchTerm]
         );
         res.json(rows);
@@ -66,7 +66,7 @@ exports.createCategory = async (req, res) => {
 
         // Prepare the insert query with all possible fields
         const query = `
-            INSERT INTO category (
+            INSERT INTO Category (
                 Name,
                 Slug,
                 Color,

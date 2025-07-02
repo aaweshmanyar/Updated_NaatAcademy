@@ -12,18 +12,18 @@ const pool = mysql.createPool({
 // Get all writers
 exports.getAllWriters = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM writer WHERE IsDeleted = 0');
+        const [rows] = await pool.query('SELECT * FROM Writer WHERE IsDeleted = 0');
         res.json(rows);
     } catch (error) {
-        console.error('Error fetching writers:', error);
-        res.status(500).json({ message: 'Error fetching writers', error: error.message });
+        console.error('Error fetching Writer:', error);
+        res.status(500).json({ message: 'Error fetching Writer', error: error.message });
     }
 };
 
 // Get writer by ID
 exports.getWriterById = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM writer WHERE WriterID = ? AND IsDeleted = 0', [req.params.id]);
+        const [rows] = await pool.query('SELECT * FROM Writer WHERE WriterID = ? AND IsDeleted = 0', [req.params.id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Writer not found' });
@@ -41,7 +41,7 @@ exports.searchWriters = async (req, res) => {
     try {
         const searchTerm = `%${req.query.term}%`;
         const [rows] = await pool.query(
-            'SELECT * FROM writer WHERE (Name LIKE ? OR Bio LIKE ?) AND IsDeleted = 0',
+            'SELECT * FROM Writer WHERE (Name LIKE ? OR Bio LIKE ?) AND IsDeleted = 0',
             [searchTerm, searchTerm]
         );
         res.json(rows);
@@ -67,7 +67,7 @@ exports.createWriter = async (req, res) => {
 
         // Prepare the insert query with all possible fields
         const query = `
-            INSERT INTO writer (
+            INSERT INTO Writer (
                 Name,
                 LanguageID,
                 LanguageName,
@@ -82,6 +82,11 @@ exports.createWriter = async (req, res) => {
             ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
+        // Get profile image URL from uploaded file or request body
+        const profileImageUrl = req.file
+            ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+            : req.body.ProfileImageURL || null;
+
         // Extract values from request body with fallbacks for optional fields
         const values = [
             req.body.Name,
@@ -92,7 +97,7 @@ exports.createWriter = async (req, res) => {
             req.body.GroupName || null,
             req.body.SectionID || null,
             req.body.SectionName || null,
-            req.body.ProfileImageURL || null,
+            profileImageUrl,
             req.body.Bio || null,
             0  // IsDeleted defaults to 0 (false)
         ];
@@ -104,6 +109,7 @@ exports.createWriter = async (req, res) => {
         res.status(201).json({
             message: 'Writer created successfully',
             writerId: result.insertId,
+            profileImageUrl: profileImageUrl,
             success: true
         });
 

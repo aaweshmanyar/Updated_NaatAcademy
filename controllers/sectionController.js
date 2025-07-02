@@ -12,18 +12,18 @@ const pool = mysql.createPool({
 // Get all sections
 exports.getAllSections = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM section');
+        const [rows] = await pool.query('SELECT * FROM Section');
         res.json(rows);
     } catch (error) {
-        console.error('Error fetching sections:', error);
-        res.status(500).json({ message: 'Error fetching sections', error: error.message });
+        console.error('Error fetching Section:', error);
+        res.status(500).json({ message: 'Error fetching Section', error: error.message });
     }
 };
 
 // Get section by ID
 exports.getSectionById = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM section WHERE SectionID = ?', [req.params.id]);
+        const [rows] = await pool.query('SELECT * FROM Section WHERE SectionID = ?', [req.params.id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Section not found' });
@@ -41,7 +41,7 @@ exports.searchSections = async (req, res) => {
     try {
         const searchTerm = `%${req.query.term}%`;
         const [rows] = await pool.query(
-            'SELECT * FROM section WHERE SectionName LIKE ? OR SectionDescription LIKE ?',
+            'SELECT * FROM Section WHERE SectionName LIKE ? OR SectionDescription LIKE ?',
             [searchTerm, searchTerm]
         );
         res.json(rows);
@@ -66,7 +66,7 @@ exports.createSection = async (req, res) => {
 
         // Prepare the insert query with all possible fields
         const query = `
-            INSERT INTO section (
+            INSERT INTO Section (
                 SectionName,
                 SectionDescription
             ) VALUES (?, ?)
