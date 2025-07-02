@@ -94,11 +94,11 @@ exports.createWriter = async (req, res) => {
             req.body.LanguageName || null,
             req.body.Status || null,
             req.body.GroupID || null,
-            req.body.GroupName || null,
+            req.body.GroupName || '',
             req.body.SectionID || null,
-            req.body.SectionName || null,
+            req.body.SectionName || '',
             profileImageUrl,
-            req.body.Bio || null,
+            req.body.Bio || '',
             0  // IsDeleted defaults to 0 (false)
         ];
 

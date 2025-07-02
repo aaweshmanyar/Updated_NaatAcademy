@@ -12,7 +12,7 @@ const pool = mysql.createPool({
 // Get all kalaams
 exports.getAllKalaams = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM kalaam WHERE IsDeleted = 0');
+        const [rows] = await pool.query('SELECT * FROM Kalaam WHERE IsDeleted = 0');
         res.json(rows);
     } catch (error) {
         console.error('Error fetching kalaams:', error);
@@ -23,7 +23,7 @@ exports.getAllKalaams = async (req, res) => {
 // Get kalaam by ID
 exports.getKalaamById = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM kalaam WHERE KalaamID = ? AND IsDeleted = 0', [req.params.id]);
+        const [rows] = await pool.query('SELECT * FROM Kalaam WHERE KalaamID = ? AND IsDeleted = 0', [req.params.id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Kalaam not found' });
@@ -41,7 +41,7 @@ exports.searchKalaams = async (req, res) => {
     try {
         const searchTerm = `%${req.query.term}%`;
         const [rows] = await pool.query(
-            `SELECT * FROM kalaam 
+            `SELECT * FROM Kalaam 
             WHERE (Title LIKE ? 
                 OR ContentUrdu LIKE ? 
                 OR ContentRomanUrdu LIKE ? 
@@ -50,7 +50,7 @@ exports.searchKalaams = async (req, res) => {
             AND IsDeleted = 0`,
             [searchTerm, searchTerm, searchTerm, searchTerm, searchTerm]
         );
-        res.json(rows);
+        res.json(rows); 
     } catch (error) {
         console.error('Error searching kalaams:', error);
         res.status(500).json({ message: 'Error searching kalaams', error: error.message });
