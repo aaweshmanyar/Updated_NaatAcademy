@@ -23,7 +23,7 @@ exports.getAllTopics = async (req, res) => {
 // Get topic by ID
 exports.getTopicById = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM Topic WHERE id = ?', [req.params.id]);
+        const [rows] = await pool.query('SELECT * FROM Topic WHERE TopicID = ?', [req.params.id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Topic not found' });
@@ -49,7 +49,7 @@ exports.searchTopics = async (req, res) => {
         console.error('Error searching topics:', error);
         res.status(500).json({ message: 'Error searching topics', error: error.message });
     }
-};
+}; 
 
 // Create new topic
 exports.createTopic = async (req, res) => {
