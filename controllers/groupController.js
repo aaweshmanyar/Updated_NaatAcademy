@@ -18,7 +18,7 @@ exports.getAllGroups = async (req, res) => {
         console.error('Error fetching groups:', error);
         res.status(500).json({ message: 'Error fetching groups', error: error.message });
     }
-};
+}; 
 
 // Get group by ID
 exports.getGroupById = async (req, res) => {
@@ -53,6 +53,18 @@ exports.searchGroups = async (req, res) => {
 
 exports.createGroup = async (req, res) => {
     try {
+        // Log the incoming request body and file
+        console.log('Request body:', req.body);
+        console.log('Uploaded file:', req.file);
+
+        // Check if req.body exists
+        if (!req.body) {
+            return res.status(400).json({
+                message: 'No data provided',
+                success: false
+            });
+        }
+
         // Required fields validation
         const requiredFields = ['GroupName'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
@@ -60,7 +72,8 @@ exports.createGroup = async (req, res) => {
         if (missingFields.length > 0) {
             return res.status(400).json({
                 message: 'Missing required fields',
-                missingFields: missingFields
+                missingFields: missingFields,
+                receivedData: req.body
             });
         }
 
@@ -68,15 +81,25 @@ exports.createGroup = async (req, res) => {
         const query = `
             INSERT INTO \`Groups\` (
                 GroupName,
-                GroupDescription
-            ) VALUES (?, ?)
+                GroupDescription,
+                GroupImageURL
+            ) VALUES (?, ?, ?)
         `;
+
+        // Get group image URL from uploaded file
+        const groupImageUrl = req.file
+            ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+            : null;
 
         // Extract values from request body with fallbacks for optional fields
         const values = [
             req.body.GroupName,
-            req.body.GroupDescription || null
+            req.body.GroupDescription || '',
+            groupImageUrl
         ];
+
+        // Log the values being inserted
+        console.log('Inserting values:', values);
 
         // Execute the insert query
         const [result] = await pool.query(query, values);
@@ -85,6 +108,7 @@ exports.createGroup = async (req, res) => {
         res.status(201).json({
             message: 'Group created successfully',
             groupId: result.insertId,
+            groupImageUrl: groupImageUrl,
             success: true
         });
 
@@ -92,6 +116,106 @@ exports.createGroup = async (req, res) => {
         console.error('Error creating group:', error);
         res.status(500).json({
             message: 'Error creating group',
+            error: error.message,
+            receivedBody: req.body,
+            success: false
+        });
+    }
+}; 
+
+// Update group
+exports.updateGroup = async (req, res) => {
+    try {
+        // Log the incoming request body and file
+        console.log('Update request body:', req.body);
+        console.log('Update uploaded file:', req.file);
+
+        const groupId = req.params.id;
+
+        // Check if group exists
+        const [existingGroup] = await pool.query(
+            'SELECT * FROM `Groups` WHERE GroupID = ?',
+            [groupId]
+        );
+
+        if (existingGroup.length === 0) {
+            return res.status(404).json({
+                message: 'Group not found',
+                success: false
+            });
+        }
+
+        // Prepare update fields
+        const updateFields = [];
+        const values = [];
+
+        // Handle text fields
+        if (req.body.GroupName !== undefined) {
+            updateFields.push('GroupName = ?');
+            values.push(req.body.GroupName);
+        }
+        if (req.body.GroupDescription !== undefined) {
+            updateFields.push('GroupDescription = ?');
+            values.push(req.body.GroupDescription);
+        }
+
+        // Handle image update
+        if (req.file) {
+            const groupImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+            updateFields.push('GroupImageURL = ?');
+            values.push(groupImageUrl);
+
+            // Delete old image if it exists
+            if (existingGroup[0].GroupImageURL) {
+                const oldImagePath = existingGroup[0].GroupImageURL.split('/uploads/')[1];
+                if (oldImagePath) {
+                    const fullPath = path.join(__dirname, '..', 'uploads', oldImagePath);
+                    if (fs.existsSync(fullPath)) {
+                        fs.unlinkSync(fullPath);
+                    }
+                }
+            }
+        }
+
+        // Add GroupID to values array
+        values.push(groupId);
+
+        // Construct and execute update query
+        const query = `
+            UPDATE \`Groups\`
+            SET ${updateFields.join(', ')}
+            WHERE GroupID = ?
+        `;
+
+        // Log the update query and values
+        console.log('Update query:', query);
+        console.log('Update values:', values);
+
+        const [result] = await pool.query(query, values);
+
+        if (result.affectedRows === 0) {
+            return res.status(404).json({
+                message: 'Group not found or no changes made',
+                success: false
+            });
+        }
+
+        // Fetch updated group
+        const [updatedGroup] = await pool.query(
+            'SELECT * FROM `Groups` WHERE GroupID = ?',
+            [groupId]
+        );
+
+        res.json({
+            message: 'Group updated successfully',
+            group: updatedGroup[0],
+            success: true
+        });
+
+    } catch (error) {
+        console.error('Error updating group:', error);
+        res.status(500).json({
+            message: 'Error updating group',
             error: error.message,
             success: false
         });
