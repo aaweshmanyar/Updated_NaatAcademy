@@ -36,7 +36,7 @@ exports.getTopicById = async (req, res) => {
     }
 };
 
-// Search topics
+// Search topics 
 exports.searchTopics = async (req, res) => {
     try {
         const searchTerm = `%${req.query.term}%`;

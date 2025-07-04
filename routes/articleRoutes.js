@@ -8,10 +8,16 @@ router.get('/', articleController.getAllArticles);
 // Get article by ID
 router.get('/:id', articleController.getArticleById);
 
+// Get article for editing
+router.get('/:id/edit', articleController.getArticleForEdit);
+
 // Search articles
 router.get('/search', articleController.searchArticles);
 
 // Create new article
 router.post('/', articleController.createArticle);
+
+// Update article
+router.put('/:id', articleController.updateArticle);
 
 module.exports = router; 
