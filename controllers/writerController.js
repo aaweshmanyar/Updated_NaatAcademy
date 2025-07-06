@@ -121,4 +121,131 @@ exports.createWriter = async (req, res) => {
             success: false
         });
     }
+};
+
+// Update writer
+exports.updateWriter = async (req, res) => {
+    try {
+        const writerId = req.params.id;
+
+        // Check if writer exists
+        const [existingWriter] = await pool.query(
+            'SELECT * FROM Writer WHERE WriterID = ? AND IsDeleted = 0',
+            [writerId]
+        );
+
+        if (existingWriter.length === 0) {
+            return res.status(404).json({
+                message: 'Writer not found',
+                success: false
+            });
+        }
+
+        // Get profile image URL from uploaded file or keep existing
+        const profileImageUrl = req.file
+            ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+            : req.body.ProfileImageURL || existingWriter[0].ProfileImageURL;
+
+        // Prepare the update query
+        const query = `
+            UPDATE Writer 
+            SET 
+                Name = ?,
+                LanguageID = ?,
+                LanguageName = ?,
+                Status = ?,
+                GroupID = ?,
+                GroupName = ?,
+                SectionID = ?,
+                SectionName = ?,
+                ProfileImageURL = ?,
+                Bio = ?
+            WHERE WriterID = ? AND IsDeleted = 0
+        `;
+
+        // Extract values from request body with fallbacks to existing values
+        const values = [
+            req.body.Name || existingWriter[0].Name,
+            req.body.LanguageID || existingWriter[0].LanguageID,
+            req.body.LanguageName || existingWriter[0].LanguageName,
+            req.body.Status || existingWriter[0].Status,
+            req.body.GroupID || existingWriter[0].GroupID,
+            req.body.GroupName || existingWriter[0].GroupName,
+            req.body.SectionID || existingWriter[0].SectionID,
+            req.body.SectionName || existingWriter[0].SectionName,
+            profileImageUrl,
+            req.body.Bio || existingWriter[0].Bio,
+            writerId
+        ];
+
+        // Execute the update query
+        const [result] = await pool.query(query, values);
+
+        if (result.affectedRows === 0) {
+            return res.status(400).json({
+                message: 'Writer update failed',
+                success: false
+            });
+        }
+
+        res.json({
+            message: 'Writer updated successfully',
+            profileImageUrl: profileImageUrl,
+            success: true
+        });
+
+    } catch (error) {
+        console.error('Error updating writer:', error);
+        res.status(500).json({
+            message: 'Error updating writer',
+            error: error.message,
+            success: false
+        });
+    }
+};
+
+// Delete writer (soft delete)
+exports.deleteWriter = async (req, res) => {
+    try {
+        const writerId = req.params.id;
+
+        // Check if writer exists
+        const [existingWriter] = await pool.query(
+            'SELECT * FROM Writer WHERE WriterID = ? AND IsDeleted = 0',
+            [writerId]
+        );
+
+        if (existingWriter.length === 0) {
+            return res.status(404).json({
+                message: 'Writer not found',
+                success: false
+            });
+        }
+
+        // Perform soft delete by setting IsDeleted to 1
+        const [result] = await pool.query(
+            'UPDATE Writer SET IsDeleted = 1 WHERE WriterID = ?',
+            [writerId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(400).json({
+                message: 'Writer deletion failed',
+                success: false
+            });
+        }
+
+        res.json({
+            message: 'Writer deleted successfully',
+            success: true
+        });
+
+    } catch (error) {
+        console.error('Error deleting writer:', error);
+        res.status(500).json({
+            message: 'Error deleting writer',
+            error: error.message,
+            success: false
+        });
+    }
 }; 

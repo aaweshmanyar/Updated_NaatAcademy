@@ -47,4 +47,7 @@ router.post('/', upload.single('image'), groupController.createGroup);
 // Update group
 router.put('/:id', upload.single('image'), groupController.updateGroup);
 
+// Delete group
+router.delete('/:id', groupController.deleteGroup);
+
 module.exports = router; 

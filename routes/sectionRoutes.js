@@ -47,4 +47,7 @@ router.post('/', upload.single('image'), sectionController.createSection);
 // Update section
 router.put('/:id', upload.single('image'), sectionController.updateSection);
 
+// Delete section
+router.delete('/:id', sectionController.deleteSection);
+
 module.exports = router; 

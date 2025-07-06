@@ -12,7 +12,7 @@ const pool = mysql.createPool({
 // Get all sections
 exports.getAllSections = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM Section');
+        const [rows] = await pool.query('SELECT * FROM Section WHERE IsDeleted = 0');
         res.json(rows);
     } catch (error) {
         console.error('Error fetching Section:', error);
@@ -23,7 +23,7 @@ exports.getAllSections = async (req, res) => {
 // Get section by ID
 exports.getSectionById = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM Section WHERE SectionID = ?', [req.params.id]);
+        const [rows] = await pool.query('SELECT * FROM Section WHERE SectionID = ? AND IsDeleted = 0', [req.params.id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Section not found' });
@@ -41,7 +41,7 @@ exports.searchSections = async (req, res) => {
     try {
         const searchTerm = `%${req.query.term}%`;
         const [rows] = await pool.query(
-            'SELECT * FROM Section WHERE SectionName LIKE ? OR SectionDescription LIKE ?',
+            'SELECT * FROM Section WHERE (SectionName LIKE ? OR SectionDescription LIKE ?) AND IsDeleted = 0',
             [searchTerm, searchTerm]
         );
         res.json(rows);
@@ -82,8 +82,9 @@ exports.createSection = async (req, res) => {
             INSERT INTO Section (
                 SectionName,
                 SectionDescription,
-                SectionImageURL
-            ) VALUES (?, ?, ?)
+                SectionImageURL,
+                IsDeleted
+            ) VALUES (?, ?, ?, ?)
         `;
 
         // Get section image URL from uploaded file
@@ -95,7 +96,8 @@ exports.createSection = async (req, res) => {
         const values = [
             req.body.SectionName,
             req.body.SectionDescription || '',
-            sectionImageUrl
+            sectionImageUrl,
+            0  // IsDeleted defaults to 0 (false)
         ];
 
         // Log the values being inserted
@@ -134,7 +136,7 @@ exports.updateSection = async (req, res) => {
 
         // Check if section exists
         const [existingSection] = await pool.query(
-            'SELECT * FROM Section WHERE SectionID = ?',
+            'SELECT * FROM Section WHERE SectionID = ? AND IsDeleted = 0',
             [sectionId]
         );
 
@@ -184,7 +186,7 @@ exports.updateSection = async (req, res) => {
         const query = `
             UPDATE Section 
             SET ${updateFields.join(', ')}
-            WHERE SectionID = ?
+            WHERE SectionID = ? AND IsDeleted = 0
         `;
 
         // Log the update query and values
@@ -202,7 +204,7 @@ exports.updateSection = async (req, res) => {
 
         // Fetch updated section
         const [updatedSection] = await pool.query(
-            'SELECT * FROM Section WHERE SectionID = ?',
+            'SELECT * FROM Section WHERE SectionID = ? AND IsDeleted = 0',
             [sectionId]
         );
 
@@ -220,4 +222,50 @@ exports.updateSection = async (req, res) => {
             success: false
         });
     }
-}; 
+};
+
+// Delete section (soft delete)
+exports.deleteSection = async (req, res) => {
+    try {
+        const sectionId = req.params.id;
+
+        // Check if section exists
+        const [existingSection] = await pool.query(
+            'SELECT * FROM Section WHERE SectionID = ? AND IsDeleted = 0',
+            [sectionId]
+        );
+
+        if (existingSection.length === 0) {
+            return res.status(404).json({
+                message: 'Section not found',
+                success: false
+            });
+        }
+
+        // Perform soft delete by setting IsDeleted to 1
+        const [result] = await pool.query(
+            'UPDATE Section SET IsDeleted = 1 WHERE SectionID = ?',
+            [sectionId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(400).json({
+                message: 'Section deletion failed',
+                success: false
+            });
+        }
+
+        res.json({
+            message: 'Section deleted successfully',
+            success: true
+        });
+
+    } catch (error) {
+        console.error('Error deleting section:', error);
+        res.status(500).json({
+            message: 'Error deleting section',
+            error: error.message,
+            success: false
+        });
+    }
+};  

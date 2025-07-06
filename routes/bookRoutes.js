@@ -27,4 +27,10 @@ router.get('/search', bookController.searchBooks);
 // Create new book
 router.post('/', upload.single('image'), bookController.createBook);
 
+// Update book
+router.put('/:id', upload.single('image'), bookController.updateBook);
+
+// Delete book
+router.delete('/:id', bookController.deleteBook);
+
 module.exports = router; 

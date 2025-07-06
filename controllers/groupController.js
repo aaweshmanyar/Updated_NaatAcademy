@@ -12,7 +12,7 @@ const pool = mysql.createPool({
 // Get all groups
 exports.getAllGroups = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM `Groups`');
+        const [rows] = await pool.query('SELECT * FROM `Groups` WHERE IsDeleted = 0');
         res.json(rows);
     } catch (error) {
         console.error('Error fetching groups:', error);
@@ -23,7 +23,7 @@ exports.getAllGroups = async (req, res) => {
 // Get group by ID
 exports.getGroupById = async (req, res) => {
     try {
-        const [rows] = await pool.query('SELECT * FROM `Groups` WHERE GroupID = ?', [req.params.id]);
+        const [rows] = await pool.query('SELECT * FROM `Groups` WHERE GroupID = ? AND IsDeleted = 0', [req.params.id]);
         
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Group not found' });
@@ -41,7 +41,7 @@ exports.searchGroups = async (req, res) => {
     try {
         const searchTerm = `%${req.query.term}%`;
         const [rows] = await pool.query(
-            'SELECT * FROM `Groups` WHERE GroupName LIKE ? OR GroupDescription LIKE ?',
+            'SELECT * FROM `Groups` WHERE (GroupName LIKE ? OR GroupDescription LIKE ?) AND IsDeleted = 0',
             [searchTerm, searchTerm]
         );
         res.json(rows);
@@ -82,8 +82,9 @@ exports.createGroup = async (req, res) => {
             INSERT INTO \`Groups\` (
                 GroupName,
                 GroupDescription,
-                GroupImageURL
-            ) VALUES (?, ?, ?)
+                GroupImageURL,
+                IsDeleted
+            ) VALUES (?, ?, ?, ?)
         `;
 
         // Get group image URL from uploaded file
@@ -95,7 +96,8 @@ exports.createGroup = async (req, res) => {
         const values = [
             req.body.GroupName,
             req.body.GroupDescription || '',
-            groupImageUrl
+            groupImageUrl,
+            0 // IsDeleted defaults to 0 (false)
         ];
 
         // Log the values being inserted
@@ -134,7 +136,7 @@ exports.updateGroup = async (req, res) => {
 
         // Check if group exists
         const [existingGroup] = await pool.query(
-            'SELECT * FROM `Groups` WHERE GroupID = ?',
+            'SELECT * FROM `Groups` WHERE GroupID = ? AND IsDeleted = 0',
             [groupId]
         );
 
@@ -184,7 +186,7 @@ exports.updateGroup = async (req, res) => {
         const query = `
             UPDATE \`Groups\`
             SET ${updateFields.join(', ')}
-            WHERE GroupID = ?
+            WHERE GroupID = ? AND IsDeleted = 0
         `;
 
         // Log the update query and values
@@ -202,7 +204,7 @@ exports.updateGroup = async (req, res) => {
 
         // Fetch updated group
         const [updatedGroup] = await pool.query(
-            'SELECT * FROM `Groups` WHERE GroupID = ?',
+            'SELECT * FROM `Groups` WHERE GroupID = ? AND IsDeleted = 0',
             [groupId]
         );
 
@@ -216,6 +218,52 @@ exports.updateGroup = async (req, res) => {
         console.error('Error updating group:', error);
         res.status(500).json({
             message: 'Error updating group',
+            error: error.message,
+            success: false
+        });
+    }
+}; 
+
+// Delete group (soft delete)
+exports.deleteGroup = async (req, res) => {
+    try {
+        const groupId = req.params.id;
+
+        // Check if group exists
+        const [existingGroup] = await pool.query(
+            'SELECT * FROM `Groups` WHERE GroupID = ? AND IsDeleted = 0',
+            [groupId]
+        ); 
+  
+        if (existingGroup.length === 0) {
+            return res.status(404).json({
+                message: 'Group not found',
+                success: false
+            });
+        }
+ 
+        // Perform soft delete by setting IsDeleted to 1
+        const [result] = await pool.query(
+            'UPDATE `Groups` SET IsDeleted = 1 WHERE GroupID = ?',
+            [groupId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(400).json({
+                message: 'Group deletion failed',
+                success: false
+            });
+        }
+
+        res.json({
+            message: 'Group deleted successfully',
+            success: true
+        });
+
+    } catch (error) {
+        console.error('Error deleting group:', error);
+        res.status(500).json({
+            message: 'Error deleting group',
             error: error.message,
             success: false
         });

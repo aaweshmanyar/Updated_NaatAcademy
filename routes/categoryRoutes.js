@@ -14,4 +14,10 @@ router.get('/search', categoryController.searchCategories);
 // Create new category
 router.post('/', categoryController.createCategory);
 
+// Update category
+router.put('/:id', categoryController.updateCategory);
+
+// Delete category
+router.delete('/:id', categoryController.deleteCategory);
+
 module.exports = router; 

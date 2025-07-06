@@ -135,4 +135,139 @@ exports.createBook = async (req, res) => {
             success: false
         });
     }
+};
+
+// Update book
+exports.updateBook = async (req, res) => {
+    try {
+        const bookId = req.params.id;
+
+        // Check if book exists
+        const [existingBook] = await pool.query(
+            'SELECT * FROM Book WHERE BookID = ? AND IsDeleted = 0',
+            [bookId]
+        );
+
+        if (existingBook.length === 0) {
+            return res.status(404).json({
+                message: 'Book not found',
+                success: false
+            });
+        }
+
+        // Get cover image URL from uploaded file or keep existing
+        const coverImageUrl = req.file
+            ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+            : req.body.CoverImageURL || existingBook[0].CoverImageURL;
+
+        // Prepare the update query
+        const query = `
+            UPDATE Book 
+            SET 
+                Title = ?,
+                AuthorID = ?,
+                AuthorName = ?,
+                LanguageID = ?,
+                LanguageName = ?,
+                CategoryID = ?,
+                CategoryName = ?,
+                GroupID = ?,
+                GroupName = ?,
+                SectionID = ?,
+                SectionName = ?,
+                CoverImageURL = ?,
+                PublicationYear = ?,
+                Description = ?
+            WHERE BookID = ? AND IsDeleted = 0
+        `;
+
+        // Extract values from request body with fallbacks to existing values
+        const values = [
+            req.body.Title || existingBook[0].Title,
+            req.body.AuthorID || existingBook[0].AuthorID,
+            req.body.AuthorName || existingBook[0].AuthorName,
+            req.body.LanguageID || existingBook[0].LanguageID,
+            req.body.LanguageName || existingBook[0].LanguageName,
+            req.body.CategoryID || existingBook[0].CategoryID,
+            req.body.CategoryName || existingBook[0].CategoryName,
+            req.body.GroupID || existingBook[0].GroupID,
+            req.body.GroupName || existingBook[0].GroupName,
+            req.body.SectionID || existingBook[0].SectionID,
+            req.body.SectionName || existingBook[0].SectionName,
+            coverImageUrl,
+            req.body.PublicationYear || existingBook[0].PublicationYear,
+            req.body.Description || existingBook[0].Description,
+            bookId
+        ];
+
+        // Execute the update query
+        const [result] = await pool.query(query, values);
+
+        if (result.affectedRows === 0) {
+            return res.status(400).json({
+                message: 'Book update failed',
+                success: false
+            });
+        }
+
+        res.json({
+            message: 'Book updated successfully',
+            coverImageUrl: coverImageUrl,
+            success: true
+        });
+
+    } catch (error) {
+        console.error('Error updating book:', error);
+        res.status(500).json({
+            message: 'Error updating book',
+            error: error.message,
+            success: false
+        });
+    }
+};
+
+// Delete book (soft delete)
+exports.deleteBook = async (req, res) => {
+    try {
+        const bookId = req.params.id;
+
+        // Check if book exists
+        const [existingBook] = await pool.query(
+            'SELECT * FROM Book WHERE BookID = ? AND IsDeleted = 0',
+            [bookId]
+        );
+
+        if (existingBook.length === 0) {
+            return res.status(404).json({
+                message: 'Book not found',
+                success: false
+            });
+        }
+
+        // Perform soft delete by setting IsDeleted to 1
+        const [result] = await pool.query(
+            'UPDATE Book SET IsDeleted = 1 WHERE BookID = ?',
+            [bookId]
+        );
+
+        if (result.affectedRows === 0) {
+            return res.status(400).json({
+                message: 'Book deletion failed',
+                success: false
+            });
+        }
+
+        res.json({
+            message: 'Book deleted successfully',
+            success: true
+        });
+
+    } catch (error) {
+        console.error('Error deleting book:', error);
+        res.status(500).json({
+            message: 'Error deleting book',
+            error: error.message,
+            success: false
+        });
+    }
 }; 

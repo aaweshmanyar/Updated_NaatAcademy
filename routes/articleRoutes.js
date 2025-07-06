@@ -20,4 +20,7 @@ router.post('/', articleController.createArticle);
 // Update article
 router.put('/:id', articleController.updateArticle);
 
+// Delete article
+router.delete('/:id', articleController.deleteArticle);
+
 module.exports = router; 

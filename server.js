@@ -99,6 +99,7 @@ const groupRoutes = require('./routes/groupRoutes');
 const kalaamRoutes = require('./routes/kalaamRoutes');
 const sectionRoutes = require('./routes/sectionRoutes');
 const topicRoutes = require('./routes/topicRoutes');
+const languageRoutes = require('./routes/languageRoutes');
 
 // Apply routes
 app.use('/api/articles', articleRoutes);
@@ -109,6 +110,7 @@ app.use('/api/groups', groupRoutes);
 app.use('/api/kalaam', kalaamRoutes);
 app.use('/api/sections', sectionRoutes);
 app.use('/api/topics', topicRoutes);
+app.use('/api/languages', languageRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

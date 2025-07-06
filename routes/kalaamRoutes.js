@@ -14,4 +14,10 @@ router.get('/search', kalaamController.searchKalaams);
 // Create new kalaam
 router.post('/', kalaamController.createKalaam);
 
+// Update kalaam
+router.put('/:id', kalaamController.updateKalaam);
+
+// Delete kalaam
+router.delete('/:id', kalaamController.deleteKalaam);
+
 module.exports = router; 

@@ -44,4 +44,10 @@ router.get('/search', writerController.searchWriters);
 // Create new writer
 router.post('/', upload.single('image'), writerController.createWriter);
 
+// Update writer
+router.put('/:id', upload.single('image'), writerController.updateWriter);
+
+// Delete writer
+router.delete('/:id', writerController.deleteWriter);
+
 module.exports = router; 
