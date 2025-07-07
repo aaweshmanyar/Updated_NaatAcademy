@@ -100,6 +100,7 @@ const kalaamRoutes = require('./routes/kalaamRoutes');
 const sectionRoutes = require('./routes/sectionRoutes');
 const topicRoutes = require('./routes/topicRoutes');
 const languageRoutes = require('./routes/languageRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
 
 // Apply routes
 app.use('/api/articles', articleRoutes);
@@ -111,6 +112,7 @@ app.use('/api/kalaam', kalaamRoutes);
 app.use('/api/sections', sectionRoutes);
 app.use('/api/topics', topicRoutes);
 app.use('/api/languages', languageRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
@@ -119,7 +121,7 @@ app.use((err, req, res, next) => {
         message: 'Something broke!',
         error: err.message
     });
-});
+}); 
  
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
