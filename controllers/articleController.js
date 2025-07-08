@@ -61,7 +61,7 @@ function generateArticleSearchKeys(article) {
 
 // Helper function to generate thumbnail URL
 function generateThumbnailUrl(articleId) {
-    return `/api/uploads/${articleId}`;
+     return `https://${req.get('host')}/api/uploads/${articleId}`;
 }
 
 // Helper function to transform article data with proper thumbnail URL
@@ -69,7 +69,9 @@ function transformArticleData(article) {
     if (article) {
         return {
             ...article,
-            ThumbnailURL: generateThumbnailUrl(article.ArticleID)
+            ThumbnailURL: article.ThumbnailURL 
+                ? `https://${req.get('host')}/uploads/${article.ThumbnailURL}`
+                : null
         };
     }
     return article;

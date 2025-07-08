@@ -71,12 +71,25 @@ pool.getConnection((err, connection) => {
 });
 
 // File upload route
-app.post('/api/upload', upload.single('image'), (req, res) => {
+app.post('/api/upload', upload.single('image'), async (req, res) => {
     try {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
-        // Always use https
+        
+        // Get the article ID from the request (assuming it's sent in the body)
+        const articleId = req.body.articleId;
+        
+        if (!articleId) {
+            return res.status(400).json({ message: 'Article ID is required' });
+        }
+        
+        // Update the article in the database with the filename
+        await pool.query(
+            'UPDATE Article SET ThumbnailURL = ? WHERE ArticleID = ?',
+            [req.file.filename, articleId]
+        );
+        
         const imageUrl = `https://${req.get('host')}/uploads/${req.file.filename}`;
         res.json({ 
             message: 'File uploaded successfully',
