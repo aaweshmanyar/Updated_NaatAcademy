@@ -76,7 +76,8 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
         if (!req.file) {
             return res.status(400).json({ message: 'No file uploaded' });
         }
-        const imageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
+        // Always use https
+        const imageUrl = `https://${req.get('host')}/uploads/${req.file.filename}`;
         res.json({ 
             message: 'File uploaded successfully',
             imageUrl: imageUrl
