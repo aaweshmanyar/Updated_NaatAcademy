@@ -59,10 +59,27 @@ function generateArticleSearchKeys(article) {
     return Array.from(allKeys).join(' ');
 }
 
+// Helper function to generate thumbnail URL
+function generateThumbnailUrl(articleId) {
+    return `/api/uploads/${articleId}`;
+}
+
+// Helper function to transform article data with proper thumbnail URL
+function transformArticleData(article) {
+    if (article) {
+        return {
+            ...article,
+            ThumbnailURL: generateThumbnailUrl(article.ArticleID)
+        };
+    }
+    return article;
+}
+
 exports.getAllArticles = async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM Article WHERE IsDeleted = 0');
-        res.json(rows);
+        const transformedRows = rows.map(transformArticleData);
+        res.json(transformedRows);
     } catch (error) {
         console.error('Error fetching Article:', error);
         res.status(500).json({ message: 'Error fetching Article', error: error.message });
@@ -77,7 +94,8 @@ exports.getArticleById = async (req, res) => {
             return res.status(404).json({ message: 'Article not found' });
         }
         
-        res.json(rows[0]);
+        const transformedArticle = transformArticleData(rows[0]);
+        res.json(transformedArticle);
     } catch (error) {
         console.error('Error fetching Article:', error);
         res.status(500).json({ message: 'Error fetching Article', error: error.message });
@@ -112,7 +130,8 @@ exports.searchArticles = async (req, res) => {
         const queryParams = [...searchValues, ...orderByParams];
         
         const [rows] = await pool.query(query, queryParams);
-        res.json(rows);
+        const transformedRows = rows.map(transformArticleData);
+        res.json(transformedRows);
     } catch (error) {
         console.error('Error searching Article:', error);
         res.status(500).json({ message: 'Error searching Article', error: error.message });
@@ -163,7 +182,6 @@ exports.createArticle = async (req, res) => {
                 WriterName,
                 CategoryID,
                 CategoryName,
-                ThumbnailURL,
                 ContentUrdu,
                 ContentEnglish,
                 GroupID,
@@ -175,7 +193,7 @@ exports.createArticle = async (req, res) => {
                 TopicName,
                 SearchKeys,
                 IsDeleted
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const values = [
@@ -184,7 +202,6 @@ exports.createArticle = async (req, res) => {
             req.body.WriterName || null,
             categoryId,
             req.body.CategoryName || null,
-            req.body.ThumbnailURL || null,
             req.body.ContentUrdu || null,
             req.body.ContentEnglish || null,
             groupId,
@@ -204,9 +221,16 @@ exports.createArticle = async (req, res) => {
 
         console.log('Insert result:', result);
 
+        const articleData = {
+            ArticleID: result.insertId,
+            ...req.body
+        };
+
+        const transformedArticle = transformArticleData(articleData);
+
         res.status(201).json({
             message: 'Article created successfully',
-            articleId: result.insertId,
+            article: transformedArticle,
             success: true
         });
 
@@ -414,8 +438,9 @@ exports.getArticleForEdit = async (req, res) => {
             });
         }
         
+        const transformedArticle = transformArticleData(rows[0]);
         res.json({
-            article: rows[0],
+            article: transformedArticle,
             success: true
         });
     } catch (error) {
