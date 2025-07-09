@@ -81,7 +81,7 @@ app.post('/api/upload', upload.single('image'), (req, res) => {
         res.json({ 
             message: 'File uploaded successfully',
             imageUrl: imageUrl
-        });
+        });  
     } catch (error) {
         console.error('Error uploading file:', error);
         res.status(500).json({ 
