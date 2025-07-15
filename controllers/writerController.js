@@ -78,8 +78,10 @@ exports.createWriter = async (req, res) => {
                 SectionName,
                 ProfileImageURL,
                 Bio,
+                wiladat,
+                Wisal,
                 IsDeleted
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         // Get profile image URL from uploaded file or request body
@@ -99,6 +101,8 @@ exports.createWriter = async (req, res) => {
             req.body.SectionName || '',
             profileImageUrl,
             req.body.Bio || '',
+            req.body.wiladat || null,
+            req.body.Wisal || null,
             0  // IsDeleted defaults to 0 (false)
         ];
 
@@ -159,7 +163,9 @@ exports.updateWriter = async (req, res) => {
                 SectionID = ?,
                 SectionName = ?,
                 ProfileImageURL = ?,
-                Bio = ?
+                Bio = ?,
+                wiladat = ?,
+                Wisal = ?
             WHERE WriterID = ? AND IsDeleted = 0
         `;
 
@@ -175,6 +181,8 @@ exports.updateWriter = async (req, res) => {
             req.body.SectionName || existingWriter[0].SectionName,
             profileImageUrl,
             req.body.Bio || existingWriter[0].Bio,
+            req.body.wiladat || existingWriter[0].wiladat,
+            req.body.Wisal || existingWriter[0].Wisal,
             writerId
         ];
 
@@ -248,4 +256,4 @@ exports.deleteWriter = async (req, res) => {
             success: false
         });
     }
-}; 
+};
