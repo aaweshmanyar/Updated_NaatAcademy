@@ -1,4 +1,7 @@
 const mysql = require('mysql2');
+const path = require('path');
+const fs = require('fs');
+
 const pool = mysql.createPool({
     host: process.env.DB_HOST,
     user: process.env.DB_USER,
@@ -9,7 +12,7 @@ const pool = mysql.createPool({
     queueLimit: 0
 }).promise();
 
-// Get all groups
+// Get all groups (only not deleted)
 exports.getAllGroups = async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM `Groups` WHERE IsDeleted = 0');
@@ -18,17 +21,15 @@ exports.getAllGroups = async (req, res) => {
         console.error('Error fetching groups:', error);
         res.status(500).json({ message: 'Error fetching groups', error: error.message });
     }
-}; 
+};
 
 // Get group by ID
 exports.getGroupById = async (req, res) => {
     try {
         const [rows] = await pool.query('SELECT * FROM `Groups` WHERE GroupID = ? AND IsDeleted = 0', [req.params.id]);
-        
         if (rows.length === 0) {
             return res.status(404).json({ message: 'Group not found' });
         }
-        
         res.json(rows[0]);
     } catch (error) {
         console.error('Error fetching group:', error);
@@ -36,7 +37,7 @@ exports.getGroupById = async (req, res) => {
     }
 };
 
-// Search groups
+// Search groups by name or description
 exports.searchGroups = async (req, res) => {
     try {
         const searchTerm = `%${req.query.term}%`;
@@ -51,66 +52,57 @@ exports.searchGroups = async (req, res) => {
     }
 };
 
+// Create new group
 exports.createGroup = async (req, res) => {
     try {
-        // Log the incoming request body and file
         console.log('Request body:', req.body);
         console.log('Uploaded file:', req.file);
 
-        // Check if req.body exists
         if (!req.body) {
-            return res.status(400).json({
-                message: 'No data provided',
-                success: false
-            });
+            return res.status(400).json({ message: 'No data provided', success: false });
         }
 
-        // Required fields validation
         const requiredFields = ['GroupName'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
-        
+
         if (missingFields.length > 0) {
             return res.status(400).json({
                 message: 'Missing required fields',
-                missingFields: missingFields,
+                missingFields,
                 receivedData: req.body
             });
         }
 
-        // Prepare the insert query with all possible fields
+        const groupImageUrl = req.file
+            ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
+            : null;
+
+        const values = [
+            req.body.GroupName,
+            req.body.GroupDescription || '',
+            groupImageUrl,
+            0, // IsDeleted = 0 (default)
+            req.body.IsFeatured === '1' || req.body.IsFeatured === 1 ? 1 : 0
+        ];
+
         const query = `
             INSERT INTO \`Groups\` (
                 GroupName,
                 GroupDescription,
                 GroupImageURL,
-                IsDeleted
-            ) VALUES (?, ?, ?, ?)
+                IsDeleted,
+                IsFeatured
+            ) VALUES (?, ?, ?, ?, ?)
         `;
 
-        // Get group image URL from uploaded file
-        const groupImageUrl = req.file
-            ? `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`
-            : null;
-
-        // Extract values from request body with fallbacks for optional fields
-        const values = [
-            req.body.GroupName,
-            req.body.GroupDescription || '',
-            groupImageUrl,
-            0 // IsDeleted defaults to 0 (false)
-        ];
-
-        // Log the values being inserted
         console.log('Inserting values:', values);
 
-        // Execute the insert query
         const [result] = await pool.query(query, values);
 
-        // Return success response with the new group ID
         res.status(201).json({
             message: 'Group created successfully',
             groupId: result.insertId,
-            groupImageUrl: groupImageUrl,
+            groupImageUrl,
             success: true
         });
 
@@ -123,51 +115,48 @@ exports.createGroup = async (req, res) => {
             success: false
         });
     }
-}; 
+};
 
-// Update group
+// Update existing group
 exports.updateGroup = async (req, res) => {
     try {
-        // Log the incoming request body and file
         console.log('Update request body:', req.body);
         console.log('Update uploaded file:', req.file);
 
         const groupId = req.params.id;
 
-        // Check if group exists
         const [existingGroup] = await pool.query(
             'SELECT * FROM `Groups` WHERE GroupID = ? AND IsDeleted = 0',
             [groupId]
         );
 
         if (existingGroup.length === 0) {
-            return res.status(404).json({
-                message: 'Group not found',
-                success: false
-            });
+            return res.status(404).json({ message: 'Group not found', success: false });
         }
 
-        // Prepare update fields
         const updateFields = [];
         const values = [];
 
-        // Handle text fields
         if (req.body.GroupName !== undefined) {
             updateFields.push('GroupName = ?');
             values.push(req.body.GroupName);
         }
+
         if (req.body.GroupDescription !== undefined) {
             updateFields.push('GroupDescription = ?');
             values.push(req.body.GroupDescription);
         }
 
-        // Handle image update
+        if (req.body.IsFeatured !== undefined) {
+            updateFields.push('IsFeatured = ?');
+            values.push(req.body.IsFeatured === '1' || req.body.IsFeatured === 1 ? 1 : 0);
+        }
+
         if (req.file) {
             const groupImageUrl = `${req.protocol}://${req.get('host')}/uploads/${req.file.filename}`;
             updateFields.push('GroupImageURL = ?');
             values.push(groupImageUrl);
 
-            // Delete old image if it exists
             if (existingGroup[0].GroupImageURL) {
                 const oldImagePath = existingGroup[0].GroupImageURL.split('/uploads/')[1];
                 if (oldImagePath) {
@@ -179,17 +168,14 @@ exports.updateGroup = async (req, res) => {
             }
         }
 
-        // Add GroupID to values array
         values.push(groupId);
 
-        // Construct and execute update query
         const query = `
             UPDATE \`Groups\`
             SET ${updateFields.join(', ')}
             WHERE GroupID = ? AND IsDeleted = 0
         `;
 
-        // Log the update query and values
         console.log('Update query:', query);
         console.log('Update values:', values);
 
@@ -202,9 +188,8 @@ exports.updateGroup = async (req, res) => {
             });
         }
 
-        // Fetch updated group
         const [updatedGroup] = await pool.query(
-            'SELECT * FROM `Groups` WHERE GroupID = ? AND IsDeleted = 0',
+            'SELECT * FROM \`Groups\` WHERE GroupID = ? AND IsDeleted = 0',
             [groupId]
         );
 
@@ -222,43 +207,32 @@ exports.updateGroup = async (req, res) => {
             success: false
         });
     }
-}; 
+};
 
-// Delete group (soft delete)
+// Soft delete group (IsDeleted = 1)
 exports.deleteGroup = async (req, res) => {
     try {
         const groupId = req.params.id;
 
-        // Check if group exists
         const [existingGroup] = await pool.query(
             'SELECT * FROM `Groups` WHERE GroupID = ? AND IsDeleted = 0',
             [groupId]
-        ); 
-  
+        );
+
         if (existingGroup.length === 0) {
-            return res.status(404).json({
-                message: 'Group not found',
-                success: false
-            });
+            return res.status(404).json({ message: 'Group not found', success: false });
         }
- 
-        // Perform soft delete by setting IsDeleted to 1
+
         const [result] = await pool.query(
             'UPDATE `Groups` SET IsDeleted = 1 WHERE GroupID = ?',
             [groupId]
         );
 
         if (result.affectedRows === 0) {
-            return res.status(400).json({
-                message: 'Group deletion failed',
-                success: false
-            });
+            return res.status(400).json({ message: 'Group deletion failed', success: false });
         }
 
-        res.json({
-            message: 'Group deleted successfully',
-            success: true
-        });
+        res.json({ message: 'Group deleted successfully', success: true });
 
     } catch (error) {
         console.error('Error deleting group:', error);
@@ -268,4 +242,4 @@ exports.deleteGroup = async (req, res) => {
             success: false
         });
     }
-}; 
+};

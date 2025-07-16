@@ -32,22 +32,12 @@ const upload = multer({
     }
 });
 
-// Get all sections
+// Routes
 router.get('/', sectionController.getAllSections);
-
-// Get section by ID
 router.get('/:id', sectionController.getSectionById);
-
-// Search sections
 router.get('/search', sectionController.searchSections);
-
-// Create new section
 router.post('/', upload.single('image'), sectionController.createSection);
-
-// Update section
 router.put('/:id', upload.single('image'), sectionController.updateSection);
-
-// Delete section
 router.delete('/:id', sectionController.deleteSection);
 
-module.exports = router; 
+module.exports = router;
