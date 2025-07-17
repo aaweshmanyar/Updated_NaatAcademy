@@ -35,6 +35,9 @@ const upload = multer({
 // Get all writers
 router.get('/', writerController.getAllWriters);
 
+// Add this with your other routes
+router.get('/limited', writerController.getLimitedWriters);
+
 // Get writer by ID
 router.get('/:id', writerController.getWriterById);
 

@@ -257,3 +257,44 @@ exports.deleteWriter = async (req, res) => {
         });
     }
 };
+
+
+// Add this with your other controller functions
+exports.getLimitedWriters = async (req, res) => {
+    try {
+        // Validate and parse parameters
+        const limit = Math.min(parseInt(req.query.limit) || 10, 100); // Max 100 items
+        const offset = parseInt(req.query.offset) || 0;
+        
+        // Get total count for pagination info
+        const [countRows] = await pool.query(
+            'SELECT COUNT(*) as total FROM Writer WHERE IsDeleted = 0'
+        );
+        const total = countRows[0].total;
+
+        // Get paginated data
+        const [rows] = await pool.query(
+            'SELECT * FROM Writer WHERE IsDeleted = 0 ORDER BY WriterID LIMIT ? OFFSET ?',
+            [limit, offset]
+        );
+        
+        res.json({
+            success: true,
+            data: rows,
+            pagination: {
+                limit,
+                offset,
+                total,
+                returned: rows.length,
+                hasMore: offset + rows.length < total
+            }
+        });
+    } catch (error) {
+        console.error('Error fetching limited writers:', error);
+        res.status(500).json({ 
+            success: false,
+            message: 'Error fetching limited writers', 
+            error: error.message 
+        });
+    }
+};
