@@ -5,6 +5,9 @@ const kalaamController = require('../controllers/kalaamController');
 // Get all kalaams
 router.get('/', kalaamController.getAllKalaams);
 
+// Get limited kalaams
+router.get('/limited', kalaamController.getLimitedKalaams);
+
 // Get kalaam by ID
 router.get('/:id', kalaamController.getKalaamById);
 
@@ -19,5 +22,8 @@ router.put('/:id', kalaamController.updateKalaam);
 
 // Delete kalaam
 router.delete('/:id', kalaamController.deleteKalaam);
+
+
+
 
 module.exports = router; 

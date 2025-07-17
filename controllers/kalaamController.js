@@ -390,3 +390,30 @@ exports.deleteKalaam = async (req, res) => {
         });
     }
 }; 
+
+
+// Get limited kalaams
+exports.getLimitedKalaams = async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit) || 10; // Default to 10 if limit is not specified
+        const offset = parseInt(req.query.offset) || 0; // For pagination
+        
+        const [rows] = await pool.query(
+            'SELECT * FROM Kalaam WHERE IsDeleted = 0 LIMIT ? OFFSET ?',
+            [limit, offset]
+        );
+        
+        res.json({
+            data: rows,
+            limit: limit,
+            offset: offset,
+            total: rows.length
+        });
+    } catch (error) {
+        console.error('Error fetching limited kalaams:', error);
+        res.status(500).json({ 
+            message: 'Error fetching limited kalaams', 
+            error: error.message 
+        });
+    }
+};

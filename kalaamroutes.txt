@@ -1,0 +1,17 @@
+Get 10 kalaams (default):
+
+text
+GET /api/kalaam/limited
+Get 5 kalaams:
+
+text
+GET /api/kalaam/limited?limit=5
+Get next 10 kalaams (for pagination):
+
+text
+GET /api/kalaam/limited?offset=10
+
+Get 5 kalaams starting from the 3rd record:
+
+text
+GET /api/kalaam/limited?limit=5&offset=2
