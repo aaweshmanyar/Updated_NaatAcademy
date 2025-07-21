@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const kalaamController = require('../controllers/kalaamController');
 
+
+// Group articles - must come before dynamic ID route!
+router.get('/sectionone', kalaamController.getgroupskalaam);
+
 // Get all kalaams
 router.get('/', kalaamController.getAllKalaams);
 

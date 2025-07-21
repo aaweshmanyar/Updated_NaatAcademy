@@ -335,3 +335,28 @@ exports.getLimitedKalaams = async (req, res) => {
         });
     }
 };
+
+
+
+// Groups articles
+// Get all articles where sectionone = 1
+exports.getgroupskalaam = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM Kalaam WHERE sectionone = 1 AND IsDeleted = 0'
+    );
+
+    res.status(200).json({
+      success: true,
+      count: rows.length,
+      data: rows
+    });
+  } catch (error) {
+    console.error('Error fetching sectionone articles:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
