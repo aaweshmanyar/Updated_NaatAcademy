@@ -133,10 +133,9 @@ exports.searchKalaams = async (req, res) => {
 // Create new kalaam
 exports.createKalaam = async (req, res) => {
     try {
-        // Required fields validation
         const requiredFields = ['Title', 'WriterID', 'CategoryID'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
-        
+
         if (missingFields.length > 0) {
             return res.status(400).json({
                 message: 'Missing required fields',
@@ -144,33 +143,18 @@ exports.createKalaam = async (req, res) => {
             });
         }
 
-        // Generate search keys
         const searchKeys = generateKalaamSearchKeys(req.body);
 
-        // Prepare the insert query with all possible fields
         const query = `
             INSERT INTO Kalaam (
-                Title,
-                WriterID,
-                WriterName,
-                CategoryID,
-                CategoryName,
-                ContentUrdu,
-                ContentRomanUrdu,
-                ContentArabic,
-                ContentEnglish,
-                GroupID,
-                GroupName,
-                SectionID,
-                SectionName,
-                SearchKeys,
-                IsFeatured,
-                IsSelected,
-                IsDeleted
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                Title, WriterID, WriterName, CategoryID, CategoryName,
+                ContentUrdu, ContentRomanUrdu, ContentArabic, ContentEnglish,
+                GroupID, GroupName, SectionID, SectionName, SearchKeys,
+                IsFeatured, IsSelected, IsDeleted,
+                sectionone, sectiontwo, sectionthree, sectionfour, sectionfive
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
-        // Extract values from request body with fallbacks for optional fields
         const values = [
             req.body.Title,
             req.body.WriterID,
@@ -188,26 +172,18 @@ exports.createKalaam = async (req, res) => {
             searchKeys,
             req.body.IsFeatured || 0,
             req.body.IsSelected || 0,
-            0  // IsDeleted defaults to 0 (false)
+            0, // IsDeleted
+            req.body.sectionone || null,
+            req.body.sectiontwo || null,
+            req.body.sectionthree || null,
+            req.body.sectionfour || null,
+            req.body.sectionfive || null
         ];
 
-        // Execute the insert query
         const [result] = await pool.query(query, values);
-
-        // Return success response with the new kalaam ID
-        res.status(201).json({
-            message: 'Kalaam created successfully',
-            kalaamId: result.insertId,
-            success: true
-        });
-
+        res.status(201).json({ message: 'Kalaam created successfully', kalaamId: result.insertId, success: true });
     } catch (error) {
-        console.error('Error creating kalaam:', error);
-        res.status(500).json({
-            message: 'Error creating kalaam',
-            error: error.message,
-            success: false
-        });
+        res.status(500).json({ message: 'Error creating kalaam', error: error.message });
     }
 };
 
@@ -215,60 +191,31 @@ exports.createKalaam = async (req, res) => {
 exports.updateKalaam = async (req, res) => {
     try {
         const kalaamId = req.params.id;
-        console.log('Updating kalaam ID:', kalaamId);
-        console.log('Received update data:', req.body);
-
-        // First, check if the kalaam exists
-        const [existingKalaam] = await pool.query(
-            'SELECT * FROM Kalaam WHERE KalaamID = ? AND IsDeleted = 0',
-            [kalaamId]
-        );
+        const [existingKalaam] = await pool.query('SELECT * FROM Kalaam WHERE KalaamID = ? AND IsDeleted = 0', [kalaamId]);
 
         if (existingKalaam.length === 0) {
-            return res.status(404).json({
-                message: 'Kalaam not found',
-                success: false
-            });
+            return res.status(404).json({ message: 'Kalaam not found', success: false });
         }
 
-        // Required fields validation
         const requiredFields = ['Title', 'WriterID', 'CategoryID'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
-        
+
         if (missingFields.length > 0) {
-            return res.status(400).json({
-                message: 'Missing required fields',
-                missingFields: missingFields,
-                success: false
-            });
+            return res.status(400).json({ message: 'Missing required fields', missingFields, success: false });
         }
 
-        // Generate search keys
         const searchKeys = generateKalaamSearchKeys(req.body);
 
-        // Prepare the update query with all possible fields
         const query = `
             UPDATE Kalaam SET
-                Title = ?,
-                WriterID = ?,
-                WriterName = ?,
-                CategoryID = ?,
-                CategoryName = ?,
-                ContentUrdu = ?,
-                ContentRomanUrdu = ?,
-                ContentArabic = ?,
-                ContentEnglish = ?,
-                GroupID = ?,
-                GroupName = ?,
-                SectionID = ?,
-                SectionName = ?,
-                SearchKeys = ?,
-                IsFeatured = ?,
-                IsSelected = ?
+                Title = ?, WriterID = ?, WriterName = ?, CategoryID = ?, CategoryName = ?,
+                ContentUrdu = ?, ContentRomanUrdu = ?, ContentArabic = ?, ContentEnglish = ?,
+                GroupID = ?, GroupName = ?, SectionID = ?, SectionName = ?, SearchKeys = ?,
+                IsFeatured = ?, IsSelected = ?,
+                sectionone = ?, sectiontwo = ?, sectionthree = ?, sectionfour = ?, sectionfive = ?
             WHERE KalaamID = ?
         `;
 
-        // Extract values from request body with fallbacks for optional fields
         const values = [
             req.body.Title,
             req.body.WriterID,
@@ -286,48 +233,19 @@ exports.updateKalaam = async (req, res) => {
             searchKeys,
             req.body.IsFeatured || 0,
             req.body.IsSelected || 0,
+            req.body.sectionone || null,
+            req.body.sectiontwo || null,
+            req.body.sectionthree || null,
+            req.body.sectionfour || null,
+            req.body.sectionfive || null,
             kalaamId
         ];
 
-        console.log('Executing update query with values:', values);
-
-        // Execute the update query
         const [result] = await pool.query(query, values);
 
-        console.log('Update result:', result);
-
-        // Check if the kalaam was actually updated
-        if (result.affectedRows === 0) {
-            return res.status(404).json({
-                message: 'Kalaam not found or no changes made',
-                success: false
-            });
-        }
-
-        // Return success response
-        res.json({
-            message: 'Kalaam updated successfully',
-            kalaamId: kalaamId,
-            success: true
-        });
-
+        res.json({ message: 'Kalaam updated successfully', kalaamId, success: true });
     } catch (error) {
-        console.error('Error updating kalaam:', error);
-        console.error('Error details:', {
-            code: error.code,
-            errno: error.errno,
-            sqlMessage: error.sqlMessage,
-            sqlState: error.sqlState,
-            sql: error.sql
-        });
-        
-        // Send a more detailed error response
-        res.status(500).json({
-            message: 'Error updating kalaam',
-            error: error.message,
-            sqlError: error.sqlMessage,
-            success: false
-        });
+        res.status(500).json({ message: 'Error updating kalaam', error: error.message, success: false });
     }
 };
 

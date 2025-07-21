@@ -2,17 +2,20 @@ const express = require('express');
 const router = express.Router();
 const articleController = require('../controllers/articleController');
 
+// Group articles - must come before dynamic ID route!
+router.get('/sectionone', articleController.getgrouparticle);
+
+// Search articles
+router.get('/search', articleController.searchArticles);
+
 // Get all articles
 router.get('/', articleController.getAllArticles);
-
-// Get article by ID
-router.get('/:id', articleController.getArticleById);
 
 // Get article for editing
 router.get('/:id/edit', articleController.getArticleForEdit);
 
-// Search articles
-router.get('/search', articleController.searchArticles);
+// Get article by ID
+router.get('/:id', articleController.getArticleById);
 
 // Create new article
 router.post('/', articleController.createArticle);
@@ -23,4 +26,4 @@ router.put('/:id', articleController.updateArticle);
 // Delete article
 router.delete('/:id', articleController.deleteArticle);
 
-module.exports = router; 
+module.exports = router;

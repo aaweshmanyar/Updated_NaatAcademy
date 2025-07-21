@@ -119,63 +119,40 @@ exports.searchArticles = async (req, res) => {
     }
 };
 
+
+
 exports.createArticle = async (req, res) => {
     try {
         console.log('Received Article data:', req.body);
 
-        // Required fields validation
         const requiredFields = ['Title', 'WriterID', 'CategoryID'];
         const missingFields = requiredFields.filter(field => !req.body[field]);
-        
+
         if (missingFields.length > 0) {
-            console.log('Missing required fields:', missingFields);
             return res.status(400).json({
                 message: 'Missing required fields',
-                missingFields: missingFields
+                missingFields,
+                success: false
             });
         }
 
-        // Convert string IDs to numbers if they're strings
         const writerId = parseInt(req.body.WriterID);
         const categoryId = parseInt(req.body.CategoryID);
         const groupId = req.body.GroupID ? parseInt(req.body.GroupID) : null;
         const sectionId = req.body.SectionID ? parseInt(req.body.SectionID) : null;
         const topicId = req.body.TopicID ? parseInt(req.body.TopicID) : null;
-        const topic = req.body.Topic || null;
-        const topicName = req.body.TopicName || null;
         const isDeleted = req.body.IsDeleted !== undefined ? req.body.IsDeleted : 0;
 
-        // Generate search keys
         const searchKeys = generateArticleSearchKeys(req.body);
 
-        if (isNaN(writerId) || isNaN(categoryId)) {
-            return res.status(400).json({
-                message: 'Invalid ID format',
-                error: 'WriterID and CategoryID must be valid numbers'
-            });
-        }
-
-        // Prepare the insert query
         const query = `
             INSERT INTO Article (
-                Title,
-                WriterID,
-                WriterName,
-                CategoryID,
-                CategoryName,
-                ThumbnailURL,
-                ContentUrdu,
-                ContentEnglish,
-                GroupID,
-                GroupName,
-                SectionID,
-                SectionName,
-                Topic,
-                TopicID,
-                TopicName,
-                SearchKeys,
-                IsDeleted
-            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                Title, WriterID, WriterName, CategoryID, CategoryName,
+                ThumbnailURL, ContentUrdu, ContentEnglish,
+                GroupID, GroupName, SectionID, SectionName,
+                Topic, TopicID, TopicName, SearchKeys, IsDeleted,
+                sectionone, sectiontwo, sectionthree, sectionfour, sectionfive
+            ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `;
 
         const values = [
@@ -191,18 +168,19 @@ exports.createArticle = async (req, res) => {
             req.body.GroupName || null,
             sectionId,
             req.body.SectionName || null,
-            topic,
+            req.body.Topic || null,
             topicId,
-            topicName,
+            req.body.TopicName || null,
             searchKeys,
-            isDeleted
+            isDeleted,
+            req.body.sectionone || 0,
+            req.body.sectiontwo || 0,
+            req.body.sectionthree || 0,
+            req.body.sectionfour || 0,
+            req.body.sectionfive || 0
         ];
 
-        console.log('Executing query with values:', values);
-
         const [result] = await pool.query(query, values);
-
-        console.log('Insert result:', result);
 
         res.status(201).json({
             message: 'Article created successfully',
@@ -212,14 +190,6 @@ exports.createArticle = async (req, res) => {
 
     } catch (error) {
         console.error('Error creating article:', error);
-        console.error('Error details:', {
-            code: error.code,
-            errno: error.errno,
-            sqlMessage: error.sqlMessage,
-            sqlState: error.sqlState,
-            sql: error.sql
-        });
-        
         res.status(500).json({
             message: 'Error creating article',
             error: error.message,
@@ -228,6 +198,7 @@ exports.createArticle = async (req, res) => {
         });
     }
 };
+
 
 // Get all user details
 exports.getAllUsers = async (req, res) => {
@@ -271,6 +242,8 @@ exports.searchUsers = async (req, res) => {
     }
 }; 
 
+
+
 exports.updateArticle = async (req, res) => {
     try {
         const articleId = req.params.id;
@@ -309,6 +282,12 @@ exports.updateArticle = async (req, res) => {
         const sectionId = req.body.SectionID ? parseInt(req.body.SectionID) : null;
         const topicId = req.body.TopicID ? parseInt(req.body.TopicID) : null;
 
+        // Handle ThumbnailURL - convert Buffer to string if needed
+        let thumbnailUrl = req.body.ThumbnailURL;
+        if (thumbnailUrl && thumbnailUrl.type === 'Buffer' && thumbnailUrl.data) {
+            thumbnailUrl = Buffer.from(thumbnailUrl.data).toString('utf8');
+        }
+
         // Generate search keys
         const searchKeys = generateArticleSearchKeys(req.body);
 
@@ -338,7 +317,12 @@ exports.updateArticle = async (req, res) => {
                 Topic = ?,
                 TopicID = ?,
                 TopicName = ?,
-                SearchKeys = ?
+                SearchKeys = ?,
+                sectionone = ?,
+                sectiontwo = ?,
+                sectionthree = ?,
+                sectionfour = ?,
+                sectionfive = ?
             WHERE ArticleID = ?
         `;
 
@@ -348,7 +332,7 @@ exports.updateArticle = async (req, res) => {
             req.body.WriterName || null,
             categoryId,
             req.body.CategoryName || null,
-            req.body.ThumbnailURL || null,
+            thumbnailUrl || null,
             req.body.ContentUrdu || null,
             req.body.ContentEnglish || null,
             groupId,
@@ -359,6 +343,11 @@ exports.updateArticle = async (req, res) => {
             topicId,
             req.body.TopicName || null,
             searchKeys,
+            req.body.sectionone || 0,
+            req.body.sectiontwo || 0,
+            req.body.sectionthree || 0,
+            req.body.sectionfour || 0,
+            req.body.sectionfive || 0,
             articleId
         ];
 
@@ -399,7 +388,7 @@ exports.updateArticle = async (req, res) => {
         });
     }
 };
-
+ 
 exports.getArticleForEdit = async (req, res) => {
     try {
         const [rows] = await pool.query(
@@ -486,4 +475,29 @@ exports.deleteArticle = async (req, res) => {
         });
     }
 }; 
+
+
+
+// Groups articles
+// Get all articles where sectionone = 1
+exports.getgrouparticle = async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT * FROM Article WHERE sectionone = 1 AND IsDeleted = 0'
+    );
+
+    res.status(200).json({
+      success: true,
+      count: rows.length,
+      data: rows
+    });
+  } catch (error) {
+    console.error('Error fetching sectionone articles:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Internal server error',
+      error: error.message
+    });
+  }
+};
 
