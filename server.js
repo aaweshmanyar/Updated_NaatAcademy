@@ -103,6 +103,7 @@ const topicRoutes = require('./routes/topicRoutes');
 const languageRoutes = require('./routes/languageRoutes');
 const dashboardRoutes = require('./routes/dashboardRoutes');
 const Testingroute = require('./routes/TestingRoute');
+const shareRoutes = require('./routes/shareRoutes');
 
 // Apply routes
 app.use('/api/articles', articleRoutes);
@@ -116,6 +117,7 @@ app.use('/api/topics', topicRoutes);
 app.use('/api/languages', languageRoutes);
 app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/testing', Testingroute); 
+app.use('/share', shareRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
