@@ -27,6 +27,14 @@ exports.shareKalaamController = async (req, res) => {
           body { font-family: 'Noto Nastaliq Urdu', serif; text-align: right; direction: rtl; margin: 2em; }
           .content { background: #f9f9f9; padding: 20px; border-radius: 10px; }
         </style>
+
+       <!-- ✅ Redirection script after preview -->
+    <script>
+      setTimeout(() => {
+        window.location.href = "https://freelancework02.github.io/UP_Frontend/lyrics.html?id=${id}";
+      }, 1000);
+    </script>
+
       </head>
       <body>
         <div class="content">
