@@ -10,8 +10,17 @@ const pool = mysql.createPool({
     queueLimit: 0
 }).promise();
 
+
+
 exports.getallpost = async (req, res) => {
     try {
+        let limit = parseInt(req.query.limit, 10);
+        if (isNaN(limit) || limit <= 0) limit = 50;
+        if (limit > 200) limit = 200;
+
+        let offset = parseInt(req.query.offset, 10);
+        if (isNaN(offset) || offset < 0) offset = 0;
+
         const [rows] = await pool.query(`
             SELECT 
                 post.id,
@@ -50,7 +59,8 @@ exports.getallpost = async (req, res) => {
             LEFT JOIN writer ON post.writer = writer.id
             LEFT JOIN books ON post.book = books.id
             WHERE post.isDeleted = 0
-        `);
+            LIMIT ? OFFSET ?
+        `, [limit, offset]);
 
         res.status(200).json(rows);
     } catch (error) {
@@ -58,3 +68,4 @@ exports.getallpost = async (req, res) => {
         res.status(500).json({ message: 'Internal server error', error: error.message });
     }
 };
+
