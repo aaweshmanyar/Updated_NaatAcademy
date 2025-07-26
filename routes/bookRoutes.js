@@ -18,11 +18,12 @@ const upload = multer({ storage: storage });
 // Get all books
 router.get('/', bookController.getAllBooks);
 
+// Search books
+router.get('/search', bookController.searchBooks);
+
 // Get book by ID
 router.get('/:id', bookController.getBookById);
 
-// Search books
-router.get('/search', bookController.searchBooks);
 
 // Create new book
 router.post('/', upload.single('image'), bookController.createBook);

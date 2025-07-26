@@ -37,23 +37,23 @@ exports.getBookById = async (req, res) => {
 };
 
 // Search books
+// controllers/bookController.js
 exports.searchBooks = async (req, res) => {
     try {
         const userTerm = (req.query.term || '').trim().toLowerCase();
         if (!userTerm) {
-            // If no search term, return empty array or all books depending on your preference
+            // If no search term, return empty array
             return res.json([]);
         }
         const searchTerm = `%${userTerm}%`;
-
         const [rows] = await pool.query(
             `SELECT * FROM Book 
              WHERE (LOWER(Title) LIKE ? OR LOWER(AuthorName) LIKE ?) 
                AND IsDeleted = 0`,
             [searchTerm, searchTerm]
         );
-
-        res.json(rows);  // rows is an array, can be empty
+        // Always return array (even empty)
+        return res.json(rows);
     } catch (error) {
         console.error('Error searching Book:', error);
         res.status(500).json({
@@ -62,6 +62,8 @@ exports.searchBooks = async (req, res) => {
         });
     }
 };
+
+
 
 
 exports.createBook = async (req, res) => {
