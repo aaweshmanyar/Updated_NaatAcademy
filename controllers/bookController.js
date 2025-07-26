@@ -39,17 +39,30 @@ exports.getBookById = async (req, res) => {
 // Search books
 exports.searchBooks = async (req, res) => {
     try {
-        const searchTerm = `%${req.query.term}%`;
+        const userTerm = (req.query.term || '').trim().toLowerCase();
+        if (!userTerm) {
+            // If no search term, return empty array or all books depending on your preference
+            return res.json([]);
+        }
+        const searchTerm = `%${userTerm}%`;
+
         const [rows] = await pool.query(
-            'SELECT * FROM Book WHERE (Title LIKE ? OR AuthorName LIKE ?) AND IsDeleted = 0',
+            `SELECT * FROM Book 
+             WHERE (LOWER(Title) LIKE ? OR LOWER(AuthorName) LIKE ?) 
+               AND IsDeleted = 0`,
             [searchTerm, searchTerm]
         );
-        res.json(rows);
+
+        res.json(rows);  // rows is an array, can be empty
     } catch (error) {
         console.error('Error searching Book:', error);
-        res.status(500).json({ message: 'Error searching Book', error: error.message });
+        res.status(500).json({
+            message: 'Error searching Book',
+            error: error.message,
+        });
     }
 };
+
 
 exports.createBook = async (req, res) => {
     try {
