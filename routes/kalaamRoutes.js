@@ -28,6 +28,8 @@ router.put('/:id', kalaamController.updateKalaam);
 router.delete('/:id', kalaamController.deleteKalaam);
 
 
+// Get kalaams by BookID with pagination
+router.get('/book/:bookId', kalaamController.getKalaamsByBookId);
 
 
 module.exports = router; 

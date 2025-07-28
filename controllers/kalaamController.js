@@ -360,3 +360,35 @@ exports.getgroupskalaam = async (req, res) => {
     });
   }
 };
+
+
+// Get kalaams by BookID with pagination
+exports.getKalaamsByBookId = async (req, res) => {
+    try {
+        const bookId = req.params.bookId;
+        const limit = parseInt(req.query.limit) || 10; // default 10
+        const offset = parseInt(req.query.offset) || 0;
+
+        if (!bookId) {
+            return res.status(400).json({ message: "Missing bookId parameter." });
+        }
+
+        const [rows] = await pool.query(
+            'SELECT * FROM Kalaam WHERE Bookid = ? AND IsDeleted = 0 LIMIT ? OFFSET ?',
+            [bookId, limit, offset]
+        );
+
+        res.json({
+            data: rows,
+            limit,
+            offset,
+            total: rows.length
+        });
+    } catch (error) {
+        console.error('Error fetching kalaams by book ID:', error);
+        res.status(500).json({
+            message: 'Error fetching kalaams by book ID',
+            error: error.message
+        });
+    }
+};
