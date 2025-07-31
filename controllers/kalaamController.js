@@ -392,3 +392,43 @@ exports.getKalaamsByBookId = async (req, res) => {
         });
     }
 };
+
+
+
+
+
+// Get Kalaams by CategoryName with pagination
+exports.getKalaamsByCategoryName = async (req, res) => {
+    try {
+        const categoryName = req.params.categoryName;
+        const limit = parseInt(req.query.limit) || 10;  // Default limit 10
+        const offset = parseInt(req.query.offset) || 0;
+
+        if (!categoryName) {
+            return res.status(400).json({ message: "Missing categoryName parameter." });
+        }
+
+        // Query to find Kalaams matching CategoryName with limit/offset and not deleted
+        // Using case-insensitive search using COLLATE UTF8_GENERAL_CI for MySQL
+        const [rows] = await pool.query(
+            `SELECT * FROM Kalaam 
+             WHERE Category  = ? 
+               AND IsDeleted = 0 
+             LIMIT ? OFFSET ?`,
+            [categoryName, limit, offset]
+        );
+
+        res.json({
+            data: rows,
+            limit: limit,
+            offset: offset,
+            total: rows.length
+        });
+    } catch (error) {
+        console.error('Error fetching kalaams by category name:', error);
+        res.status(500).json({
+            message: 'Error fetching kalaams by category name',
+            error: error.message
+        });
+    }
+};

@@ -21,6 +21,11 @@ router.get('/', bookController.getAllBooks);
 // Search books
 router.get('/search', bookController.searchBooks);
 
+
+// Add this route for pagination
+router.get('/paginated', bookController.getBooksPaginated);
+
+
 // Get book by ID
 router.get('/:id', bookController.getBookById);
 
@@ -31,7 +36,11 @@ router.post('/', upload.single('image'), bookController.createBook);
 // Update book
 router.put('/:id', upload.single('image'), bookController.updateBook);
 
+
+
 // Delete book
 router.delete('/:id', bookController.deleteBook);
+
+
 
 module.exports = router; 

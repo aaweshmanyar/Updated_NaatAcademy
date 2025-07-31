@@ -286,3 +286,37 @@ exports.deleteBook = async (req, res) => {
         });
     }
 }; 
+
+
+
+// Get books with limit and offset (pagination)
+exports.getBooksPaginated = async (req, res) => {
+    try {
+        const limit = parseInt(req.query.limit, 10) || 10;
+        const offset = parseInt(req.query.offset, 10) || 0;
+
+        const [rows] = await pool.query(
+            'SELECT * FROM Book WHERE IsDeleted = 0 LIMIT ? OFFSET ?',
+            [limit, offset]
+        );
+
+        const [countResult] = await pool.query(
+            'SELECT COUNT(*) AS total FROM Book WHERE IsDeleted = 0'
+        );
+
+        res.json({
+            total: countResult[0].total,
+            limit,
+            offset,
+            data: rows
+        });
+
+    } catch (error) {
+        console.error('Error fetching paginated books:', error);
+        res.status(500).json({
+            message: 'Error fetching paginated books',
+            error: error.message,
+            success: false
+        });
+    }
+};
