@@ -19,7 +19,7 @@ exports.shareKalaamController = async (req, res) => {
         <title>${kalaam.Title}</title>
         <meta name="description" content="${kalaam.Title} by ${writer} on Naatacademy.com" />
         <meta property="og:title" content="${kalaam.Title}" />
-        <meta property="og:description" content="by ${writer} on Naatacademy.com" />
+        <meta property="og:description" content="Visit Naatacademy for more kalaam and Naat" />
         <meta property="og:type" content="article" />
         <meta property="og:url" content="https://naatacademy.com/share/kalaam/${id}" />
         <meta property="og:site_name" content="Naatacademy.com" />
