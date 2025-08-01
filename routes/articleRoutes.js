@@ -8,6 +8,9 @@ router.get('/sectionone', articleController.getgrouparticle);
 // Search articles
 router.get('/search', articleController.searchArticles);
 
+// Get paginated articles (NEW)
+router.get('/paginated', articleController.getPaginatedArticles);
+
 // Get all articles
 router.get('/', articleController.getAllArticles);
 

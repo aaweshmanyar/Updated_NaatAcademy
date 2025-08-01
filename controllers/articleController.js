@@ -501,3 +501,33 @@ exports.getgrouparticle = async (req, res) => {
   }
 };
 
+
+// Get paginated list of articles
+exports.getPaginatedArticles = async (req, res) => {
+    try {
+        let limit = parseInt(req.query.limit, 10);
+        let offset = parseInt(req.query.offset, 10);
+
+        // Default values if not provided or invalid
+        if (isNaN(limit) || limit < 1) limit = 10;
+        if (isNaN(offset) || offset < 0) offset = 0;
+
+        const [rows] = await pool.query(
+            'SELECT * FROM Article WHERE IsDeleted = 0 LIMIT ? OFFSET ?',
+            [limit, offset]
+        );
+
+        res.status(200).json({
+            success: true,
+            count: rows.length,
+            data: rows
+        });
+    } catch (error) {
+        console.error('Error fetching paginated articles:', error);
+        res.status(500).json({
+            success: false,
+            message: 'Internal server error',
+            error: error.message
+        });
+    }
+};
