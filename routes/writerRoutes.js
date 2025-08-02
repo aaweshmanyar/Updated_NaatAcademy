@@ -42,7 +42,7 @@ router.get('/limited', writerController.getLimitedWriters);
 router.get('/:id', writerController.getWriterById);
 
 // Search writers
-router.get('/search', writerController.searchWriters);n
+router.get('/search', writerController.searchWriters);
 
 // Create new writer
 router.post('/', upload.single('image'), writerController.createWriter);
