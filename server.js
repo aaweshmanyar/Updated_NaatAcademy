@@ -8,7 +8,7 @@ const fs = require('fs');
 
 const app = express();
 
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://naatacademy.com')
+const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://www.naatacademy.com')
   .split(',')
   .map(o => o.trim());
 
