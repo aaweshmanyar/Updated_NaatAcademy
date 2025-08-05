@@ -8,24 +8,15 @@ const fs = require('fs');
 
 const app = express();
 
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://www.naatacademy.com')
-  .split(',')
-  .map(o => o.trim());
-
-// Custom CORS options
 const corsOptions = {
-  origin: function (origin, callback) {
-    // allow non-browser requests (like curl, server-to-server) which may have no origin
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error('CORS policy: Origin not allowed'));
-  },
-  credentials: true, // if you need cookies or auth headers
-  optionsSuccessStatus: 204,
+    origin: 'https://naatacademy.com/', // Allow only requests from this origin
+    methods: 'GET,POST', // Allow only these methods
+    allowedHeaders: ['Content-Type', 'Authorization'] // Allow only these headers
 };
+
+// Use CORS middleware with specified options
 app.use(cors(corsOptions));
+
 app.use(express.json());
 
 // Create uploads directory if it doesn't exist
