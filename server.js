@@ -9,13 +9,27 @@ const pool = require('./db');
 const app = express();
 
 const corsOptions = {
-    origin: 'https://naatacademy.com', // Allow only requests from this origin
-    methods: 'GET,POST', // Allow only these methods
-    allowedHeaders: ['Content-Type', 'Authorization'] // Allow only these headers
+    origin: function (origin, callback) {
+        const allowedOrigins = [
+            'https://naatacademy.com',        // Production domain
+            'http://127.0.0.1:5501',          // Localhost (127)
+            'http://localhost:5500'           // Localhost (localhost)
+        ];
+        
+        // Allow requests with no origin (like mobile apps, curl requests)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: 'GET,POST',
+    allowedHeaders: ['Content-Type', 'Authorization']
 };
 
 // Use CORS middleware with specified options
 app.use(cors(corsOptions));
+
 
 app.use(express.json());
 
