@@ -1,31 +1,36 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mysql = require('mysql2');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const pool = require('./db');
 
 const app = express();
 
-const allowedOrigins = (process.env.ALLOWED_ORIGINS || 'https://www.naatacademy.com')
-  .split(',')
-  .map(o => o.trim());
-
-// Custom CORS options
 const corsOptions = {
-  origin: function (origin, callback) {
-    // allow non-browser requests (like curl, server-to-server) which may have no origin
-    if (!origin) return callback(null, true);
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    }
-    return callback(new Error('CORS policy: Origin not allowed'));
-  },
-  credentials: true, // if you need cookies or auth headers
-  optionsSuccessStatus: 204,
+    origin: function (origin, callback) {
+        const allowedOrigins = [
+            'https://naatacademy.com',        // Production domain
+            'http://127.0.0.1:5501',          // Localhost (127)
+            'http://localhost:5500'           // Localhost (localhost)
+        ];
+        
+        // Allow requests with no origin (like mobile apps, curl requests)
+        if (!origin || allowedOrigins.includes(origin)) {
+            callback(null, true);
+        } else {
+            callback(new Error('Not allowed by CORS'));
+        }
+    },
+    methods: 'GET,POST',
+    allowedHeaders: ['Content-Type', 'Authorization']
 };
+
+// Use CORS middleware with specified options
 app.use(cors(corsOptions));
+
+
 app.use(express.json());
 
 // Create uploads directory if it doesn't exist
@@ -66,15 +71,7 @@ const upload = multer({
 app.use('/uploads', express.static('uploads'));
 
 // Database connection
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: 'Update_naatacademy',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+
 
 // Test database connection
 pool.getConnection((err, connection) => {
@@ -134,7 +131,7 @@ app.use('/api/kalaam', kalaamRoutes);
 app.use('/api/sections', sectionRoutes);
 app.use('/api/topics', topicRoutes);
 app.use('/api/languages', languageRoutes);
-app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/dashboard', dashboardRoutes); 
 app.use('/api/testing', Testingroute); 
 app.use('/share', shareRoutes);
 app.use('/api', bazmedurood);
@@ -153,3 +150,13 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 }); 
+
+// Graceful shutdown for MySQL pool
+process.on('SIGINT', async () => {
+    await pool.end();
+    process.exit(0);
+});
+process.on('SIGTERM', async () => {
+    await pool.end();
+    process.exit(0);
+});
