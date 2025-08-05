@@ -11,7 +11,8 @@ const app = express();
 const corsOptions = {
     origin: function (origin, callback) {
         const allowedOrigins = [
-            'https://naatacademy.com',        // Production domain
+            'https://naatacademy.com',
+            'https://www.naatacademy.com',        // Production domain
             'http://127.0.0.1:5501',          // Localhost (127)
             'http://localhost:5500'           // Localhost (localhost)
         ];
