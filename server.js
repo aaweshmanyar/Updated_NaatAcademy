@@ -121,6 +121,7 @@ const dashboardRoutes = require('./routes/dashboardRoutes');
 const Testingroute = require('./routes/TestingRoute');
 const shareRoutes = require('./routes/shareRoutes');
 const bazmedurood = require('./routes/bazmeDuroodRoutes')
+const kalamSubmissionRoutes = require('./routes/kalaamsubRoutes');
 
 
 // Apply routes
@@ -137,6 +138,7 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/testing', Testingroute); 
 app.use('/share', shareRoutes);
 app.use('/api', bazmedurood);
+app.use('/api/kalam-submissions', kalamSubmissionRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
