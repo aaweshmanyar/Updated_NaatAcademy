@@ -1,15 +1,15 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const mysql = require('mysql2');
 const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
+const pool = require('./db');
 
 const app = express();
 
 const corsOptions = {
-    origin: 'https://naatacademy.com/', // Allow only requests from this origin
+    origin: 'https://naatacademy.com', // Allow only requests from this origin
     methods: 'GET,POST', // Allow only these methods
     allowedHeaders: ['Content-Type', 'Authorization'] // Allow only these headers
 };
@@ -57,15 +57,7 @@ const upload = multer({
 app.use('/uploads', express.static('uploads'));
 
 // Database connection
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: 'Update_naatacademy',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-});
+
 
 // Test database connection
 pool.getConnection((err, connection) => {
@@ -124,7 +116,7 @@ app.use('/api/kalaam', kalaamRoutes);
 app.use('/api/sections', sectionRoutes);
 app.use('/api/topics', topicRoutes);
 app.use('/api/languages', languageRoutes);
-app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/dashboard', dashboardRoutes); 
 app.use('/api/testing', Testingroute); 
 app.use('/share', shareRoutes);
 app.use('/api', bazmedurood);
@@ -142,3 +134,13 @@ const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 }); 
+
+// Graceful shutdown for MySQL pool
+process.on('SIGINT', async () => {
+    await pool.end();
+    process.exit(0);
+});
+process.on('SIGTERM', async () => {
+    await pool.end();
+    process.exit(0);
+});

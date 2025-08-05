@@ -1,15 +1,5 @@
-const mysql = require('mysql2');
+const pool = require('../db')
 
-// Create MySQL pool with promise support
-const pool = mysql.createPool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: 'Update_naatacademy',
-  waitForConnections: true,
-  connectionLimit: 10,
-  queueLimit: 0
-}).promise();
 
 // Function to fetch kalaam by ID
 exports.getKalaamById = async (id) => {
