@@ -1,87 +1,52 @@
-const mysql = require('mysql2');
-const pool = mysql.createPool({
-    host: process.env.DB_HOST,
-    user: process.env.DB_USER,
-    password: process.env.DB_PASSWORD,
-    database: 'Update_naatacademy',
-    waitForConnections: true,
-    connectionLimit: 10,
-    queueLimit: 0
-}).promise();
+const pool = require('../db');
 
-
-
-//Insert kalaam
-exports.createKalam = (req, res) => {
+// Insert form data into `kalam_submissions`
+async function insertKalam(req, res) {
+  try {
     const {
-        name, email, whatsapp, city, country,
-        poet_name, poet_book, poet_intro,
-        kalam_title, genre, language, kalam_bahr, kalam
+      name,
+      email,
+      whatsapp,
+      city,
+      country,
+      poet_name,
+      poet_book,
+      poet_intro,
+      kalam_title,
+      genre,
+      language,
+      kalam_bahr,
+      kalam
     } = req.body;
 
-    const sql = `
-        INSERT INTO kalam_submissions (
-            name, email, whatsapp, city, country,
-            poet_name, poet_book, poet_intro,
-            kalam_title, genre, language, kalam_bahr, kalam
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+    // Insert Query
+    const sql = `INSERT INTO kalam_submissions 
+      (name, email, whatsapp, city, country, poet_name, poet_book, poet_intro, kalam_title, genre, language, kalam_bahr, kalam)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
 
-    const values = [
-        name, email, whatsapp, city, country,
-        poet_name, poet_book, poet_intro,
-        kalam_title, genre, language, kalam_bahr, kalam
-    ];
+    const values = [name, email, whatsapp, city, country, poet_name, poet_book || null, poet_intro || null, kalam_title, genre, language, kalam_bahr || null, kalam];
 
-    db.query(sql, values, (err, result) => {
-        if (err) {
-            console.error('Insert error:', err);
-            return res.status(500).json({ message: 'Database error', error: err });
-        }
-        res.status(201).json({ message: 'Kalam submitted successfully', id: result.insertId });
-    });
-};
+    const [result] = await pool.query(sql, values);
 
-// GET All Kalam Submissions
-exports.getAllKalam = (req, res) => {
-    const sql = `SELECT * FROM kalam_submissions ORDER BY created_at DESC`;
-    db.query(sql, (err, results) => {
-        if (err) {
-            return res.status(500).json({ message: 'Database error', error: err });
-        }
-        res.json(results);
-    });
-};
+    res.status(201).json({ message: "Record inserted", id: result.insertId });
+  } catch (error) {
+    console.error('Insert Error:', error);
+    res.status(500).json({ error: "Failed to insert data" });
+  }
+}
 
-// UPDATE Kalam by ID
-exports.updateKalam = (req, res) => {
-    const {
-        name, email, whatsapp, city, country,
-        poet_name, poet_book, poet_intro,
-        kalam_title, genre, language, kalam_bahr, kalam
-    } = req.body;
+// Get all kalam submissions
+async function getKalamSubmissions(req, res) {
+  try {
+    const [rows] = await pool.query('SELECT * FROM kalam_submissions ORDER BY created_at DESC');
+    res.json(rows);
+  } catch (error) {
+    console.error('Get Data Error:', error);
+    res.status(500).json({ error: "Failed to get data" });
+  }
+}
 
-    const id = req.params.id;
-
-    const sql = `
-        UPDATE kalam_submissions SET
-            name = ?, email = ?, whatsapp = ?, city = ?, country = ?,
-            poet_name = ?, poet_book = ?, poet_intro = ?,
-            kalam_title = ?, genre = ?, language = ?, kalam_bahr = ?, kalam = ?
-        WHERE id = ?
-    `;
-
-    const values = [
-        name, email, whatsapp, city, country,
-        poet_name, poet_book, poet_intro,
-        kalam_title, genre, language, kalam_bahr, kalam, id
-    ];
-
-    db.query(sql, values, (err, result) => {
-        if (err) {
-            console.error('Update error:', err);
-            return res.status(500).json({ message: 'Database error', error: err });
-        }
-        res.json({ message: 'Kalam updated successfully' });
-    });
+module.exports = {
+  insertKalam,
+  getKalamSubmissions
 };

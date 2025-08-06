@@ -14,12 +14,14 @@ const corsOptions = {
             'https://naatacademy.com',
             'https://www.naatacademy.com',        // Production domain
             'http://127.0.0.1:5501',          // Localhost (127)
-            'http://localhost:5500'           // Localhost (localhost)
+            'http://127.0.0.1:5502',          // Localhost (127)
+            'http://127.0.0.1:5503',          // Localhost (127)
+            'http://localhost:5000'           // Localhost (localhost)
         ];
         
         // Allow requests with no origin (like mobile apps, curl requests)
         if (!origin || allowedOrigins.includes(origin)) {
-            callback(null, true);
+            callback(null, true);  
         } else {
             callback(new Error('Not allowed by CORS'));
         }
@@ -120,6 +122,7 @@ const Testingroute = require('./routes/TestingRoute');
 const shareRoutes = require('./routes/shareRoutes');
 const bazmedurood = require('./routes/bazmeDuroodRoutes')
 const kalamSubmissionRoutes = require('./routes/kalaamsubRoutes');
+const mazmoonRoutes = require('./routes/mazmoonRoutes');
 
 
 // Apply routes
@@ -136,7 +139,8 @@ app.use('/api/dashboard', dashboardRoutes);
 app.use('/api/testing', Testingroute); 
 app.use('/share', shareRoutes);
 app.use('/api', bazmedurood);
-app.use('/api/kalam-submissions', kalamSubmissionRoutes);
+app.use('/api', kalamSubmissionRoutes);
+app.use('/api', mazmoonRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
