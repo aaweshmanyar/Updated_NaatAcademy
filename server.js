@@ -29,7 +29,7 @@ const corsOptions = {
     methods: 'GET,POST',
     allowedHeaders: ['Content-Type', 'Authorization']
 };
-
+ 
 // Use CORS middleware with specified options
 app.use(cors(corsOptions));
 
