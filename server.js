@@ -16,7 +16,9 @@ const corsOptions = {
             'http://127.0.0.1:5501',          // Localhost (127)
             'http://127.0.0.1:5502',          // Localhost (127)
             'http://127.0.0.1:5503',          // Localhost (127)
-            'http://localhost:5000'           // Localhost (localhost)
+            'http://localhost:5000',
+            'https://naatacadmeyadmin.vercel.app',
+            'http://localhost:5173/'           // Localhost (localhost)
         ];
         
         // Allow requests with no origin (like mobile apps, curl requests)
