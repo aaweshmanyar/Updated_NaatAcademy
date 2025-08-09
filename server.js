@@ -18,7 +18,9 @@ const corsOptions = {
             'http://127.0.0.1:5503',          // Localhost (127)
             'http://localhost:5000',
             'https://naatacadmeyadmin.vercel.app',
-            'http://localhost:5173'           // Localhost (localhost)
+            'http://localhost:5173',  // Localhost (localhost)
+            'https://lightpink-capybara-895022.hostingersite.com',
+                      
         ];
         
         // Allow requests with no origin (like mobile apps, curl requests)
